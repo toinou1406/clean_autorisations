@@ -1,7 +1,9 @@
+
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'main.dart'; // For ActionButton
 
 class PermissionScreen extends StatefulWidget {
   final VoidCallback onPermissionGranted;
@@ -24,15 +26,15 @@ class _PermissionScreenState extends State<PermissionScreen>
     super.initState();
     _animationController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 800),
+      duration: const Duration(milliseconds: 900),
     );
     _fadeAnimation =
         CurvedAnimation(parent: _animationController, curve: Curves.easeIn);
     _slideAnimation = Tween<Offset>(
-            begin: const Offset(0, 0.3), end: Offset.zero)
+            begin: const Offset(0, 0.2), end: Offset.zero)
         .animate(CurvedAnimation(
             parent: _animationController, curve: Curves.easeInOutCubic));
-    
+
     _animationController.forward();
   }
 
@@ -59,6 +61,7 @@ class _PermissionScreenState extends State<PermissionScreen>
             backgroundColor: Colors.red.shade700,
             action: SnackBarAction(
               label: 'Settings',
+              textColor: Colors.white,
               onPressed: () {
                 PhotoManager.openSetting();
               },
@@ -74,83 +77,46 @@ class _PermissionScreenState extends State<PermissionScreen>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Scaffold(
-      body: Container(
-        width: double.infinity,
-        height: double.infinity,
-        decoration: BoxDecoration(
-          image: DecorationImage(
-            image: const AssetImage("assets/images/noise.png"),
-            fit: BoxFit.cover,
-            opacity: 0.05,
-            colorFilter: ColorFilter.mode(
-                theme.colorScheme.primary.withAlpha(25), BlendMode.colorBurn),
-          ),
-        ),
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(32.0),
-            child: FadeTransition(
-              opacity: _fadeAnimation,
-              child: SlideTransition(
-                position: _slideAnimation,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.shield_moon_outlined,
-                      size: 100,
-                      color: theme.colorScheme.primary.withAlpha(204),
+      body: Center(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(32.0),
+          child: FadeTransition(
+            opacity: _fadeAnimation,
+            child: SlideTransition(
+              position: _slideAnimation,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.shield_moon_outlined, // A more elegant icon
+                    size: 100,
+                    color: Colors.white.withOpacity(0.8),
+                  ),
+                  const SizedBox(height: 32),
+                  Text(
+                    'Privacy First',
+                    textAlign: TextAlign.center,
+                    style: theme.textTheme.displayLarge?.copyWith(
+                      color: Colors.white,
                     ),
-                    const SizedBox(height: 32),
-                    Text(
-                      'Grant Photo Access',
-                      textAlign: TextAlign.center,
-                      style: theme.textTheme.displayLarge?.copyWith(fontSize: 32),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'FastClean analyzes your photos directly on your device. Nothing is ever uploaded to a server.',
+                    textAlign: TextAlign.center,
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      color: Colors.white.withOpacity(0.7),
+                      height: 1.5,
                     ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'Our AI needs your permission to scan your gallery. It will find blurry, duplicate, and unwanted photos for you to delete.',
-                      textAlign: TextAlign.center,
-                      style: theme.textTheme.bodyLarge?.copyWith(
-                        color: theme.colorScheme.onSurface.withAlpha(178),
-                        height: 1.5,
-                      ),
-                    ),
-                    const SizedBox(height: 32),
-                    _buildPrivacyChip(theme),
-                    const SizedBox(height: 48),
-                    _buildActionButton(theme),
-                  ],
-                ),
+                  ),
+                  const SizedBox(height: 48),
+                  _buildActionButton(theme),
+                ],
               ),
             ),
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildPrivacyChip(ThemeData theme) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.primary.withAlpha(25),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: theme.colorScheme.primary.withAlpha(76)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(Icons.verified_user_outlined,
-              color: theme.colorScheme.primary, size: 18),
-          const SizedBox(width: 8),
-          Text(
-            '100% Private & Secure',
-            style: theme.textTheme.bodyMedium
-                ?.copyWith(color: theme.colorScheme.primary),
-          ),
-        ],
       ),
     );
   }
@@ -164,23 +130,13 @@ class _PermissionScreenState extends State<PermissionScreen>
       child: _isLoading
           ? CircularProgressIndicator(
               key: const ValueKey('loader'),
-              color: theme.colorScheme.primary,
+              valueColor: AlwaysStoppedAnimation<Color>(theme.colorScheme.primary),
             )
-          : SizedBox(
+          : ActionButton(
               key: const ValueKey('button'),
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                icon: const Icon(Icons.lock_open_rounded),
-                label: const Text('Grant Full Access'),
-                onPressed: _requestPermission,
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  textStyle: theme.textTheme.labelLarge,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-              ),
+              label: 'Grant Access & Continue',
+              onPressed: _requestPermission,
+              isPrimary: true, // Use the primary (white) button style
             ),
     );
   }

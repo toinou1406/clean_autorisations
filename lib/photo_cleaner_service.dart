@@ -1,10 +1,7 @@
-import 'dart:io';
-import 'dart:developer' as developer;
 
 import 'package:flutter/foundation.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:disk_space_plus/disk_space_plus.dart';
-import 'package:image/image.dart' as img;
 import 'photo_analyzer.dart';
 import 'package:flutter/services.dart';
 

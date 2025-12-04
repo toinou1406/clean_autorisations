@@ -1,41 +1,19 @@
-
-import 'dart:ui';
 import 'package:flutter/foundation.dart';
 import 'dart:math' as math;
 
-import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 import 'package:image/image.dart' as img;
 import 'package:crypto/crypto.dart';
 
-// Note to developer: This file has been completely rewritten by the AI expert
-// to implement a high-performance, multi-stage photo analysis pipeline.
-
-//##############################################################################
-//# 1. ANALYSIS RESULT & SCORING MODEL
-//##############################################################################
-
-/// A comprehensive data model holding all analysis metrics for a single photo.
-/// This structured data is crucial for the scoring engine and for debugging.
 class PhotoAnalysisResult {
-  // --- Core Identifiers ---
   final String md5Hash;
   final String pHash;
-
-  // --- Stage 1: Fast Heuristics ---
-  final double blurScore;         // Lower is blurrier (Laplacian Variance)
-  final double luminanceScore;    // Mean pixel brightness (0-255)
-  final double entropyScore;        // Lower is less detailed (Histogram Entropy)
-  final double edgeDensityScore;    // Higher means more edges (Sobel Operator)
-
-  // --- Stage 2: On-Device AI (Placeholders) ---
-  final int faceCount;            // Detected faces (e.g., from MediaPipe)
-  final double aestheticScore;      // AI-based quality score (e.g., from MobileNetV3)
-  
-  // --- New Contextual Flag ---
-  final bool isFromScreenshotAlbum; // Flag to identify photos from the screenshot album
-
-  // --- Final Score ---
-  /// The combined "badness" score. Higher means more likely to be a candidate for deletion.
+  final double blurScore;
+  final double luminanceScore;
+  final double entropyScore;
+  final double edgeDensityScore;
+  final bool isFromScreenshotAlbum;
+  final int faceCount;
+  final double aestheticScore;
   double finalScore = 0.0;
 
   PhotoAnalysisResult({
@@ -47,118 +25,59 @@ class PhotoAnalysisResult {
     required this.edgeDensityScore,
     required this.isFromScreenshotAlbum,
     this.faceCount = 0,
-    this.aestheticScore = 0.5, // Default neutral score
+    this.aestheticScore = 0.5,
   }) {
-    // Calculate the final combined score upon instantiation.
     finalScore = _calculateFinalScore();
   }
 
-      double _calculateFinalScore() {
+  factory PhotoAnalysisResult.dummy() {
+    return PhotoAnalysisResult(
+      md5Hash: '',
+      pHash: '',
+      blurScore: 150.0,
+      luminanceScore: 128.0,
+      entropyScore: 6.0,
+      edgeDensityScore: 0.05,
+      isFromScreenshotAlbum: false,
+    );
+  }
 
-        // This is v5, the "even more accentuated" scoring engine.
-
-        // All values have been amplified to create a massive gap between good and bad photos.
-
-        double score = 0;
-
-    
-
-        // --- RULE 1: Screenshots are the absolute worst ---
-
-        if (isFromScreenshotAlbum) {
-
-          return 2000.0; // Doubled absolute score
-
-        }
-
-        if (edgeDensityScore > 0.07 && entropyScore < 5.5) {
-
-            score += 400; // Doubled heuristic penalty
-
-        }
-
-    
-
-        // --- RULE 2: Dark photos are very bad ---
-
-        if (luminanceScore < 50.0) {
-
-          score += 200; // Doubled
-
-        }
-
-    
-
-        // --- RULE 3: Blurry photos are very bad ---
-
-        if (blurScore < 100.0) {
-
-          score += 200; // Doubled
-
-        }
-
-        
-
-        // --- NEW RULE: Dark AND Blurry is a huge penalty ---
-        if (luminanceScore < 60.0 && blurScore < 120.0) {
-            score += 400;
-        }
-
-    
-
-        // --- RULE 4: Bright photos get a big bonus... ---
-
-        if (luminanceScore > 240.0) {
-
-          score -= 100; // Doubled bonus
-
-        }
-
-    
-
-        // --- RULE 5: ...unless they are documents ---
-
-        // This penalty is large enough to overwhelm the brightness bonus.
-
-        if (edgeDensityScore > 0.08) {
-
-          score += 300; // Doubled
-
-        }
-
-        
-
-        if (kDebugMode) {
-
-          print("Photo [${md5Hash.substring(0, 6)}...]: Final Score = $score (Blur: $blurScore, Lum: $luminanceScore, Entropy: $entropyScore, Edges: $edgeDensityScore, isSS: $isFromScreenshotAlbum)");
-
-        }
-
-        
-
-        return score;
-
-      }}
-
-
-//##############################################################################
-//# 2. THE PHOTO ANALYZER SERVICE
-//##############################################################################
+  double _calculateFinalScore() {
+    double score = 0;
+    if (isFromScreenshotAlbum) {
+      return 2000.0;
+    }
+    if (edgeDensityScore > 0.07 && entropyScore < 5.5) {
+      score += 400;
+    }
+    if (luminanceScore < 50.0) {
+      score += 200;
+    }
+    if (blurScore < 100.0) {
+      score += 200;
+    }
+    if (luminanceScore < 60.0 && blurScore < 120.0) {
+      score += 400;
+    }
+    if (luminanceScore > 240.0) {
+      score -= 100;
+    }
+    if (edgeDensityScore > 0.08) {
+      score += 300;
+    }
+    if (kDebugMode) {
+      print(
+          "Photo [${md5Hash.substring(0, 6)}...]: Final Score = $score (Blur: $blurScore, Lum: $luminanceScore, Entropy: $entropyScore, Edges: $edgeDensityScore, isSS: $isFromScreenshotAlbum)");
+    }
+    return score;
+  }
+}
 
 class PhotoAnalyzer {
-
-  /// ##########################################################################
-  /// # PERCEPTUAL HASH (pHash) IMPLEMENTATION
-  /// ##########################################################################
-  /// Detects "similar" images, resilient to resizing and minor edits.
   Future<String> calculatePerceptualHash(img.Image resizedImage) async {
-    // 1. Convert to grayscale.
     final grayscaleImg = img.grayscale(resizedImage);
-    
-    // 2. Downsize to a tiny 8x8 image. This removes high frequencies and details.
-    final smallImg = img.copyResize(grayscaleImg, width: 8, height: 8, interpolation: img.Interpolation.average);
-
-    // 3. Calculate the average pixel value.
+    final smallImg = img.copyResize(grayscaleImg,
+        width: 8, height: 8, interpolation: img.Interpolation.average);
     double total = 0;
     for (int y = 0; y < smallImg.height; y++) {
       for (int x = 0; x < smallImg.width; x++) {
@@ -166,159 +85,105 @@ class PhotoAnalyzer {
       }
     }
     final double average = total / 64.0;
-
-    // 4. Generate the binary hash.
-    // Each bit is 1 if the pixel is >= average, 0 otherwise.
     BigInt hash = BigInt.zero;
     for (int y = 0; y < 8; y++) {
-        for (int x = 0; x < 8; x++) {
-            if (smallImg.getPixel(x, y).r >= average) {
-                hash |= (BigInt.one << (y * 8 + x));
-            }
+      for (int x = 0; x < 8; x++) {
+        if (smallImg.getPixel(x, y).r >= average) {
+          hash |= (BigInt.one << (y * 8 + x));
         }
+      }
     }
     return hash.toRadixString(16).padLeft(16, '0');
   }
 
-  /// Calculates the Hamming distance between two pHashes.
-  /// This is the number of bits that are different. A lower number means more similar.
   int hammingDistance(String pHash1, String pHash2) {
-    if (pHash1.length != pHash2.length) return pHash1.length; // Should not happen
-
+    if (pHash1.length != pHash2.length) return pHash1.length;
     final val1 = BigInt.parse(pHash1, radix: 16);
     final val2 = BigInt.parse(pHash2, radix: 16);
-    
     BigInt xor = val1 ^ val2;
     int distance = 0;
     while (xor > BigInt.zero) {
-        distance += (xor & BigInt.one) == BigInt.one ? 1 : 0;
-        xor >>= 1;
+      distance += (xor & BigInt.one) == BigInt.one ? 1 : 0;
+      xor >>= 1;
     }
     return distance;
   }
 
-  // --- FAST HEURISTICS ---
-
-  /// ##########################################################################
-  /// # BLUR DETECTION (Laplacian Variance)
-  /// ##########################################################################
-  /// Measures the amount of edges in an image. Blurry images have fewer/weaker edges.
   double _calculateLaplacianVariance(img.Image image) {
-    // Apply Laplacian filter. It highlights edges.
     final laplace = img.convolution(image, filter: [
-      0,  1,  0,
-      1, -4,  1,
-      0,  1,  0,
+      0,
+      1,
+      0,
+      1,
+      -4,
+      1,
+      0,
+      1,
+      0,
     ]);
-
-    // Calculate the variance of the pixel intensities in the filtered image.
-    // Low variance = weak edges = blur.
     final pixels = laplace.getBytes(order: img.ChannelOrder.red);
     double mean = pixels.reduce((a, b) => a + b) / pixels.length;
-    double variance = pixels.map((p) => math.pow(p - mean, 2)).reduce((a, b) => a + b) / pixels.length;
+    double variance =
+        pixels.map((p) => math.pow(p - mean, 2)).reduce((a, b) => a + b) /
+            pixels.length;
     return variance;
   }
 
-  /// ##########################################################################
-  /// # DARKNESS & DETAIL (Luminance & Entropy)
-  /// ##########################################################################
   Map<String, double> _calculateLuminanceAndEntropy(img.Image image) {
     final luminances = <int>[];
     final histogram = List<int>.filled(256, 0);
-
     for (final pixel in image) {
-      final luminance = pixel.r.toInt(); // Already grayscale
+      final luminance = pixel.r.toInt();
       luminances.add(luminance);
       histogram[luminance]++;
     }
-
-    // Mean Luminance
-    final double meanLuminance = luminances.reduce((a, b) => a + b) / luminances.length;
-
-    // Shannon Entropy
+    final double meanLuminance =
+        luminances.reduce((a, b) => a + b) / luminances.length;
     double entropy = 0.0;
     final int totalPixels = luminances.length;
     for (int count in histogram) {
       if (count > 0) {
         double probability = count / totalPixels;
-        entropy -= probability * (math.log(probability) / math.log(2)); // Corrected log2 calculation
+        entropy -= probability * (math.log(probability) / math.log(2));
       }
     }
-
     return {'luminance': meanLuminance, 'entropy': entropy};
   }
 
-  /// ##########################################################################
-  /// # DOCUMENT DETECTION (Edge Density)
-  /// ##########################################################################
   double _calculateEdgeDensity(img.Image image) {
     final edgeImage = img.sobel(image);
     final edgePixels = edgeImage.getBytes(order: img.ChannelOrder.red);
-    
-    // Count pixels that are clearly edges (threshold empirically set).
     int edgeCount = edgePixels.where((p) => p > 50).length;
-    
     return edgeCount / edgePixels.length;
   }
 
-  // --- ON-DEVICE AI (PLACEHOLDERS) ---
-
-  
-  /// Placeholder for running a TFLite model for aesthetic quality.
-  /// You would use a package like `tflite_flutter` and a pre-trained MobileNetV3-based model.
   Future<double> _getAestheticScore(img.Image image) async {
-      // ---- REAL IMPLEMENTATION ----
-      // final interpreter = await Interpreter.fromAsset('models/aesthetic_model.tflite');
-      // var input = img.copyResize(image, width: 224, height: 224);
-      // // ... preprocess input tensor ...
-      // interpreter.run(input, output);
-      // return output[0][0]; // Assuming model output is a single quality score.
-      // ---- END REAL IMPLEMENTATION ----
-
-      return 0.5; // Return neutral score for now.
+    return 0.5;
   }
 
-
-  //##############################################################################
-  //# 3. MAIN ANALYSIS PIPELINE
-  //##############################################################################
-
-  /// Orchestrates the full analysis pipeline for a single photo.
-  /// Designed to be run inside a Flutter `compute` Isolate.
-  Future<PhotoAnalysisResult> analyze(Uint8List imageBytes, {bool isFromScreenshotAlbum = false}) async {
+  Future<PhotoAnalysisResult> analyze(Uint8List imageBytes,
+      {bool isFromScreenshotAlbum = false}) async {
     if (kDebugMode) {
       final hash = md5.convert(imageBytes).toString().substring(0, 6);
       print("ANALYZE START for photo [$hash]...");
     }
-    // --- STAGE 0: Decode and Prepare Image ---
-    // This is the most memory-intensive part. We do it once.
     final originalImage = img.decodeImage(imageBytes);
     if (originalImage == null) {
       throw Exception("Could not decode image");
     }
-    
-    // Create a smaller, grayscale version for fast heuristics. This is a KEY optimization.
-    final lowResGray = img.copyResize(originalImage, width: 64, height: 64, interpolation: img.Interpolation.average);
+    final lowResGray = img.copyResize(originalImage,
+        width: 64, height: 64, interpolation: img.Interpolation.average);
     img.grayscale(lowResGray);
-
-    // --- STAGE 1: Run Hashing & Fast Heuristics in Parallel ---
     final md5Hash = md5.convert(imageBytes).toString();
-    final pHashFuture = calculatePerceptualHash(lowResGray); // Use the pre-resized image;
+    final pHashFuture = calculatePerceptualHash(lowResGray);
     final blurScore = _calculateLaplacianVariance(lowResGray);
     final lumAndEntropy = _calculateLuminanceAndEntropy(lowResGray);
     final edgeScore = _calculateEdgeDensity(lowResGray);
-
-    // --- STAGE 2: AI Models DISABLED FOR PERFORMANCE ---
-    // Face detection has been disabled to significantly speed up the analysis process
-    // as requested by the user.
-    final aestheticScoreFuture = _getAestheticScore(originalImage); // This is just a placeholder
-
-    // --- STAGE 3: Await All Results and Assemble ---
+    final aestheticScoreFuture = _getAestheticScore(originalImage);
     final results = await Future.wait([
       pHashFuture,
       aestheticScoreFuture,
     ]);
-
     return PhotoAnalysisResult(
       md5Hash: md5Hash,
       pHash: results[0] as String,
@@ -327,7 +192,7 @@ class PhotoAnalyzer {
       entropyScore: lumAndEntropy['entropy']!,
       edgeDensityScore: edgeScore,
       isFromScreenshotAlbum: isFromScreenshotAlbum,
-      faceCount: 0, // Face detection disabled
+      faceCount: 0,
       aestheticScore: results[1] as double,
     );
   }

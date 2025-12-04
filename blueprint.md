@@ -1,59 +1,49 @@
-
-# Project Blueprint: AI Photo Cleaner
+# Project Blueprint: FastClean
 
 ## 1. Overview
 
-This document outlines the development of a Flutter application designed to help users free up storage space on their mobile devices by intelligently identifying and deleting unnecessary photos. The core functionality relies on a local, on-device AI to analyze photos based on various criteria, ensuring user privacy and fast performance.
+This document outlines the development of a Flutter application designed to help users free up storage space by intelligently identifying and deleting unnecessary photos. The core functionality relies on a local, on-device AI to analyze photos, ensuring user privacy and fast performance.
 
-## 2. Core Features & Design
+## 2. Core Features
 
-### Style & Design
-- **UI:** Minimalist, fluid, and intuitive single-screen interface.
-- **Theme:** Material 3 design with a `Colors.blue` primary swatch.
-- **Layout:**
-    - Top: A linear progress indicator showing used vs. total storage.
-    - Center: A 3-column grid to display photos recommended for deletion.
-    - Bottom: Context-aware action buttons.
-- **Feedback:** Loading indicators during analysis and snack-bar notifications for success or error messages.
-
-### Implemented Features
-- **Storage Indicator:** Displays the device's storage status (`usedSpaceGB / totalSpaceGB`).
-- **On-Device Photo Analysis (The "Trier" Action):**
-    - Scans and analyzes user photos locally.
-    - Uses a scoring system based on:
-        - **Blurriness:** High score for blurry images (Laplacian variance).
-        - **Darkness:** High score for overly dark images.
-        - **Screenshots:** High score for images identified as screenshots by name or aspect ratio.
-        - **Low Resolution:** High score for small images.
-        - **Age:** High score for old photos.
-        - **Duplicates & Similars:** Maximum score for exact duplicates (MD5 hash) and a high score for visually similar photos (perceptual hash).
-- **Photo Selection:** Selects the top 9 photos with the highest "uselessness" score.
-- **Deletion Workflow:**
-    - **Trier/Re-trier:** Initiates the analysis and displays the 9 candidates.
-    - **Supprimer:** Deletes the selected photos from the device gallery.
+- **On-Device Photo Analysis:** Scans and analyzes user photos locally using a scoring system based on criteria like blurriness, darkness, low resolution, duplicates, and similarity.
+- **Intelligent Selection:** Recommends a selection of photos for deletion based on their calculated scores.
+- **User-Controlled Deletion:** Allows users to review suggested photos, keep the ones they want, and delete the rest.
+- **Privacy-First:** All analysis happens on the device. No photos are uploaded to the cloud.
 - **Permissions:** Handles requesting necessary photo gallery access permissions on both iOS and Android.
 
-## 3. Current Plan: UI/UX Polish Pass
+## 3. Current Art Direction: "Living Aurora"
 
-This section outlines a comprehensive enhancement of the application's visual design and user experience, adhering to modern, bold, and accessible design principles.
+This section outlines a sophisticated and dynamic visual identity inspired by the ethereal beauty of the aurora borealis. The goal is a premium, fluid, and captivating user experience that feels alive. This is a full-scale implementation across the entire application.
 
-### Theming & Style Overhaul
-- **Color Palette:** Transition from a basic `primarySwatch` to a vibrant and harmonious theme generated with `ColorScheme.fromSeed`. A deep purple will be used as the seed color to create a unique and energetic look.
-- **Typography:** Integrate the `google_fonts` package.
-    - **Headlines:** Use 'Oswald' for a bold, impactful style on titles and key metrics.
-    - **Body Text:** Use 'Roboto' for its clarity and readability in buttons and descriptive text.
-- **Background:** Apply a subtle noise texture to the main background to add a premium, tactile feel.
-- **Component Theming:** Define app-wide styles for `AppBar` and `ElevatedButton` to ensure consistency.
+### Theming & Style
+- **Color Palette & Hierarchy:** The core of the theme is a moving, animated gradient with a clear color hierarchy.
+    - **Background:** A deep, near-black charcoal (`#1A1A1A`) to serve as the night sky.
+    - **Aurora Gradient:** A fluid blend with **Ethereal Green** (`#00FFA3`) as the dominant, central color. It will gently shift towards **Deep Cyan** (`#00D4FF`) and may contain subtle, rare hints of **Mystic Magenta** (`#FF00E5`). The animation will make these colors flow and merge in a perpetual, slow dance.
+- **Animation:** The key principle is slow, hypnotic motion. UI elements will not just "glow," but will have their colors shift and dance. This will be achieved using a unified set of custom painters and animated widgets.
+- **Typography:** The **Inter** font is retained for its excellent clarity against the dynamic background.
 
-### UI & Visual Enhancements
-- **"Lifted" Photo Cards:** Each photo in the grid will be presented in a `Card` with a soft, multi-layered drop shadow to create a sense of depth and make it feel "lifted" off the background.
-- **Animated Grid:** Implement a fade-in animation for the photo cards as they appear, providing a smoother and more dynamic user experience.
-- **Enhanced Storage Bar:** Redesign the storage indicator to be more visually engaging, with better-defined text and a more prominent progress bar.
-- **Iconography:** Add intuitive icons to all action buttons (`Trier`, `Re-trier`, `Supprimer`) to enhance user understanding and navigation.
-- **Button Glow Effect:** Style buttons with a subtle "glow" effect using shadows and gradients to make interactive elements more prominent and appealing.
+### UI & Layout Enhancements
+- **New `EmptyState` Layout:** The layout of the main screen will be reconfigured. The `SavedSpaceIndicator` (space saved this month) will now be positioned **above** the `AuroraCircularIndicator`.
+- **`AuroraCircularIndicator`:** The animated ring of light will be updated to feature the new green-dominant gradient.
+- **`AuroraLinearProgressIndicator`:** A new, reusable animated progress bar will be created and used in the `SavedSpaceIndicator`.
+- **`AuroraBorder`:** A new widget will provide an animated "Aurora" border for `PhotoCard`s and `ActionButton`s.
+- **`SortingIndicatorBar`:** Will be fully redesigned to use a horizontal, flowing Aurora animation.
+- **`FullScreenImageView`:** The loading indicators and decorative gradients will adopt the Aurora theme.
 
-### UX Improvements
-- **Engaging Loading State:** Replace the standard `CircularProgressIndicator` with a custom-designed, more visually interesting loading animation and a more descriptive message.
-- **Informative Empty State:** Create a more engaging "empty" screen for when no photos are selected, featuring a large icon and clear instructions to guide the user.
-- **Haptic Feedback:** (Future consideration) Add subtle haptic feedback for key interactions like button presses and photo deletion.
-- **Accessibility:** Ensure all new UI elements and text styles adhere to accessibility standards for contrast and font size.
+### Implementation Plan
+
+1.  **Update `blueprint.md`:** Finalize the "Living Aurora" plan, including the layout change and color hierarchy.
+2.  **Create `lib/aurora_widgets.dart`:** Centralize the Aurora animation logic. This file will contain:
+    *   `AuroraPainter` for linear animated gradients.
+    *   `AuroraBorder` widget for wrapping other widgets.
+    *   `AuroraLinearProgressIndicator` for progress bars.
+3.  **Refactor `AuroraCircularIndicator`:** Update its gradient to be green-dominant.
+4.  **Refactor `SavedSpaceIndicator`:** Replace its `LinearProgressIndicator` with the new `AuroraLinearProgressIndicator`.
+5.  **Refactor `main.dart`:**
+    *   Implement the new `EmptyState` layout (`SavedSpaceIndicator` above `AuroraCircularIndicator`).
+    *   Replace static button styles with the new `AuroraBorder` on `ActionButton`.
+    *   Apply `AuroraBorder` to selected `PhotoCard`s.
+    *   Remove all remaining "Néon" theme code.
+6.  **Refactor `sorting_indicator_bar.dart`:** Replace its existing animation with a new one based on the `AuroraPainter`.
+7.  **Refactor `full_screen_image_view.dart`:** Replace loading indicators and gradients with Aurora-themed versions.

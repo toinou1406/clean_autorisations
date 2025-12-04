@@ -1,18 +1,22 @@
+
 import 'dart:async';
 import 'dart:developer' as developer;
 import 'dart:io' show Platform;
 import 'dart:math';
-import 'saved_space_indicator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'photo_cleaner_service.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:shimmer/shimmer.dart';
-import 'permission_screen.dart';
+
+// Custom Widgets
+import 'aurora_circular_indicator.dart';
 import 'full_screen_image_view.dart';
+import 'permission_screen.dart';
 import 'photo_analyzer.dart';
+import 'photo_cleaner_service.dart';
+import 'saved_space_indicator.dart';
+import 'sorting_indicator_bar.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -36,34 +40,57 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const Color primarySeedColor = Colors.deepPurple;
+    const Color darkCharcoal = Color(0xFF1A1A1A);
+    const Color offWhite = Color(0xFFEAEAEA);
+    const Color neonGreen = Color(0xFF39FF14);
 
-    final TextTheme appTextTheme = TextTheme(
-      displayLarge: GoogleFonts.oswald(fontSize: 57, fontWeight: FontWeight.bold),
-      titleLarge: GoogleFonts.roboto(fontSize: 22, fontWeight: FontWeight.w500),
-      bodyMedium: GoogleFonts.openSans(fontSize: 14),
-      labelLarge: GoogleFonts.roboto(fontSize: 16, fontWeight: FontWeight.w500),
+    final TextTheme appTextTheme = GoogleFonts.interTextTheme(
+      ThemeData.dark().textTheme,
+    ).copyWith(
+      displayLarge: GoogleFonts.inter(fontSize: 48, fontWeight: FontWeight.bold, color: Colors.white),
+      titleLarge: GoogleFonts.inter(fontSize: 22, fontWeight: FontWeight.w600, color: offWhite),
+      titleMedium: GoogleFonts.inter(fontSize: 18, color: offWhite.withOpacity(0.8)),
+      bodyMedium: GoogleFonts.inter(fontSize: 14, color: offWhite.withOpacity(0.7)),
+      labelLarge: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w500, color: darkCharcoal),
     );
 
     final ThemeData theme = ThemeData(
       useMaterial3: true,
-      colorScheme: ColorScheme.fromSeed(
-        seedColor: primarySeedColor,
-        brightness: Brightness.dark,
+      scaffoldBackgroundColor: darkCharcoal,
+      colorScheme: const ColorScheme.dark(
+        primary: Colors.white,
+        onPrimary: darkCharcoal,
+        secondary: offWhite,
+        surface: Color(0xFF2C2C2C),
+        onSurface: offWhite,
+        error: Colors.redAccent,
+        primaryContainer: neonGreen, // Using primaryContainer for the neon color
       ),
       textTheme: appTextTheme,
       appBarTheme: AppBarTheme(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        titleTextStyle: GoogleFonts.oswald(fontSize: 24, fontWeight: FontWeight.bold),
+        titleTextStyle: GoogleFonts.inter(fontSize: 20, fontWeight: FontWeight.w600, color: offWhite),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
-        style: ElevatedButton.styleFrom(
-          foregroundColor: Colors.white,
-          backgroundColor: primarySeedColor,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-          textStyle: GoogleFonts.roboto(fontSize: 16, fontWeight: FontWeight.w500),
+        style: ButtonStyle(
+          foregroundColor: WidgetStateProperty.all(darkCharcoal),
+          backgroundColor: WidgetStateProperty.all(Colors.white),
+          shape: WidgetStateProperty.all(RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+          padding: WidgetStateProperty.all(const EdgeInsets.symmetric(horizontal: 24, vertical: 16)),
+          textStyle: WidgetStateProperty.all(GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600)),
+          elevation: WidgetStateProperty.all(0),
+          shadowColor: WidgetStateProperty.all(neonGreen),
+        ),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: ButtonStyle(
+          foregroundColor: WidgetStateProperty.all(Colors.white),
+          side: WidgetStateProperty.all(BorderSide(color: Colors.white.withOpacity(0.5))),
+          shape: WidgetStateProperty.all(RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+          padding: WidgetStateProperty.all(const EdgeInsets.symmetric(horizontal: 24, vertical: 16)),
+          textStyle: WidgetStateProperty.all(GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600)),
+          shadowColor: WidgetStateProperty.all(neonGreen),
         ),
       ),
     );
@@ -76,7 +103,6 @@ class MyApp extends StatelessWidget {
         AppRoutes.home: (context) => const HomeScreen(),
         AppRoutes.permission: (context) => PermissionScreen(
           onPermissionGranted: () {
-            // When permission is granted, we replace the permission screen with the home screen.
             Navigator.pushReplacementNamed(context, AppRoutes.home);
           },
         ),
@@ -84,8 +110,6 @@ class MyApp extends StatelessWidget {
     );
   }
 }
-
-
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -102,6 +126,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   List<PhotoResult> _selectedPhotos = [];
   final Set<String> _ignoredPhotos = {};
   bool _isLoading = false;
+  bool _isDeleting = false; 
   bool _hasScanned = false;
   String _sortingMessage = "Sorting...";
   Timer? _messageTimer;
@@ -113,20 +138,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     "Searching for bad screenshots...",
     "Checking for duplicates...",
     "Calculating photo scores...",
-    "Looking for overexposed photos...",
-    "Finding underexposed photos...",
-    "Identifying unneeded documents...",
     "Compiling results...",
-    "Almost there...",
     "Ranking photos by 'badness'...",
-    "Applying AI magic...",
-    "Consulting the digital spirits...",
-    "Sharpening the focus...",
-    "Polishing the pixels...",
-    "Running the AI hamster wheel...",
-    "Herding cats... I mean, pixels...",
-    "Optimizing the flux capacitor...",
-    "Reticulating splines...",
     "Finalizing the photo selection...",
   ];
 
@@ -185,17 +198,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         try {
           final asset = await AssetEntity.fromId(id);
           if (asset != null) {
-            // We don't have the analysis result, so we create a dummy one.
-            // This is a limitation of this simple state restoration.
-            restoredPhotos.add(PhotoResult(asset, PhotoAnalysisResult(
-              md5Hash: '',
-              pHash: '',
-              blurScore: 150, // a neutral score
-              luminanceScore: 128, // a neutral score
-              entropyScore: 6, // a neutral score
-              edgeDensityScore: 0.05, // a neutral score
-              isFromScreenshotAlbum: false,
-            )));
+            restoredPhotos.add(PhotoResult(asset, PhotoAnalysisResult.dummy()));
           }
         } catch (e) {
           // Asset might have been deleted.
@@ -217,9 +220,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     final lastSavedMonth = prefs.getInt('lastSavedMonth');
     final currentMonth = DateTime.now().month;
     if (lastSavedMonth != currentMonth) {
-      setState(() {
-        _spaceSaved = 0.0;
-      });
+      setState(() => _spaceSaved = 0.0);
       await prefs.setDouble('spaceSaved', 0.0);
       await prefs.setInt('lastSavedMonth', currentMonth);
     }
@@ -248,9 +249,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   Future<void> _loadStorageInfo() async {
     final info = await _service.getStorageInfo();
     if (mounted) {
-      setState(() {
-        _storageInfo = info;
-      });
+      setState(() => _storageInfo = info);
     }
   }
   
@@ -272,11 +271,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     });
     
     try {
-      if (rescan) {
-        _service.reset();
-      }
-      
-      // The first scan can be slow, subsequent scans can be faster if we cache results.
+      if (rescan) _service.reset();
       if (!_hasScanned || rescan) {
         await _service.scanPhotos();
         if (mounted) setState(() => _hasScanned = true);
@@ -285,28 +280,21 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       final photos = await _service.selectPhotosToDelete(excludedIds: _ignoredPhotos.toList());
       
       if (mounted) {
-        // Handle case where no photos are returned
         if (photos.isEmpty && _hasScanned) {
              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('No more deletable photos found! Try a new scan.')),
+                const SnackBar(content: Text('No more deletable photos found!')),
             );
         }
         setState(() {
           _selectedPhotos = photos;
           _isLoading = false;
         });
-        // Pre-cache the full-resolution files in the background
         _preCachePhotoFiles(photos);
       }
     } catch (e, s) {
         if (mounted) {
             setState(() => _isLoading = false);
-            developer.log(
-                'Error during photo sorting',
-                name: 'photo_cleaner.error',
-                error: e,
-                stackTrace: s,
-            );
+            developer.log('Error during photo sorting', name: 'photo_cleaner.error', error: e, stackTrace: s);
             ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(content: Text('An error occurred: ${e.toString()}')),
             );
@@ -315,65 +303,21 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   }
 
   void _preCachePhotoFiles(List<PhotoResult> photos) {
-    // This is a fire-and-forget method. We don't need to wait for it.
     Future(() async {
       for (final photo in photos) {
         try {
-          // By calling .file, we are asking photo_manager to locate the file.
-          // This often results in the OS caching the file path or even the
-          // file content, making subsequent access much faster.
           await photo.asset.file;
-        } catch (e) {
-          // We ignore errors here as this is just an optimization.
-          // If a file fails to cache, it will simply load normally when opened.
-        }
+        } catch (e) { /* Ignore errors */ }
       }
-      developer.log(
-        'Pre-caching for ${photos.length} photos complete.',
-        name: 'photo_cleaner.cache',
-      );
     });
   }
   
-  Future<void> _showDeletionSummaryDialog(int count, int bytes) async {
-    return showDialog<void>(
-      context: context,
-      barrierDismissible: false, // User must tap button!
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Deletion Complete'),
-          content: SingleChildScrollView(
-            child: ListBody(
-              children: <Widget>[
-                Text('$count photos were deleted.'),
-                const SizedBox(height: 10),
-                Text('Space saved: ${_formatBytes(bytes.toDouble())}'),
-              ],
-            ),
-          ),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('OK'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
-
   Future<void> _deletePhotos() async {
     HapticFeedback.heavyImpact();
-    setState(() => _isLoading = true);
+    setState(() => _isDeleting = true); 
     
     try {
-      final photosToDelete = _selectedPhotos
-          .where((p) => !_ignoredPhotos.contains(p.asset.id))
-          .toList();
-      
-      // Create a map of assetId to its size BEFORE deletion
+      final photosToDelete = _selectedPhotos.where((p) => !_ignoredPhotos.contains(p.asset.id)).toList();
       final Map<String, int> sizeMap = {};
       for (final photo in photosToDelete) {
         final file = await photo.asset.file;
@@ -381,39 +325,29 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       }
 
       final deletedIds = await _service.deletePhotos(photosToDelete);
-      
       if (deletedIds.isEmpty && photosToDelete.isNotEmpty) {
-        // Deletion was likely cancelled by the user
-        if (mounted) {
-          setState(() => _isLoading = false);
-        }
+        if (mounted) setState(() => _isDeleting = false);
         return;
       }
 
-      // Calculate space saved from the map
-      int totalBytesDeleted = 0;
-      for (final id in deletedIds) {
-        totalBytesDeleted += sizeMap[id] ?? 0;
-      }
+      int totalBytesDeleted = deletedIds.fold(0, (sum, id) => sum + (sizeMap[id] ?? 0));
       
       if (mounted) {
         setState(() {
           _selectedPhotos = [];
           _ignoredPhotos.clear();
-          _isLoading = false;
+          _isDeleting = false;
           _spaceSaved += totalBytesDeleted;
         });
         _saveSavedSpace();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Deleted ${deletedIds.length} photos and saved ${_formatBytes(totalBytesDeleted.toDouble())}')),
+        );
       }
-      
       await _loadStorageInfo();
-      
-      if (mounted && deletedIds.isNotEmpty) {
-        await _showDeletionSummaryDialog(deletedIds.length, totalBytesDeleted);
-      }
     } catch (e) {
       if (mounted) {
-        setState(() => _isLoading = false);
+        setState(() => _isDeleting = false);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error deleting photos: $e')),
         );
@@ -436,195 +370,141 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   Widget build(BuildContext context) {
     if (!_isInitialized) {
       return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
+        body: Center(child: CircularProgressIndicator(color: Colors.white)),
       );
     }
-    final int photosToDeleteCount = _selectedPhotos.length - _ignoredPhotos.length;
 
     return Scaffold(
-      body: Container(
-        decoration: Platform.environment.containsKey('FLUTTER_TEST')
-            ? null
-            : const BoxDecoration(
-                image: DecorationImage(
-                  image: AssetImage("assets/images/noise.png"),
-                  fit: BoxFit.cover, 
-                  opacity: 0.05,
-                ),
+      appBar: AppBar(
+        title: Text('FastClean', style: Theme.of(context).textTheme.titleLarge),
+        centerTitle: true,
+      ),
+      body: SafeArea(
+        child: Column(
+          children: [
+            Expanded(
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 600),
+                transitionBuilder: (Widget child, Animation<double> animation) {
+                  return FadeTransition(opacity: animation, child: child);
+                },
+                child: _buildMainContent(),
               ),
-        child: SafeArea(
-          child: Column(
-            children: [
-              // HEADER
-              Padding(
-                padding: const EdgeInsets.all(20.0),
-                child: Column(
-                  children: [
-                    Text('FastClean', style: Theme.of(context).textTheme.displayLarge?.copyWith(fontSize: 36)),
-                    const SizedBox(height: 20),
-                    if (_storageInfo != null && _selectedPhotos.isEmpty)
-                      StorageIndicator(storageInfo: _storageInfo!),
-                    if (_selectedPhotos.isEmpty)
-                      Column(
-                        children: [
-                          const SizedBox(height: 20),
-                          SavedSpaceIndicator(
-                            spaceSaved: _spaceSaved,
-                            formattedSpaceSaved: _formatBytes(_spaceSaved),
-                          ),
-                        ],
-                      ),
-                  ],
-                ),
-              ),
-              
-              if (_selectedPhotos.isEmpty)
-                const Divider(),
-              
-              // PHOTO GRID
-              Expanded(
-                child: AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 500),
-                  transitionBuilder: (Widget child, Animation<double> animation) {
-                    return FadeTransition(opacity: animation, child: child);
-                  },
-                  child: _selectedPhotos.isEmpty && !_isLoading
-                      ? const EmptyState(key: ValueKey('empty'))
-                      : GridView.builder(
-                          key: const ValueKey('grid'),
-                          padding: const EdgeInsets.all(8),
-                          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 4,
-                            crossAxisSpacing: 4,
-                            mainAxisSpacing: 4,
-                          ),
-                          itemCount: _selectedPhotos.length,
-                          itemBuilder: (context, index) {
-                            final photo = _selectedPhotos[index];
-                            return PhotoCard(
-                              key: ValueKey(photo.asset.id),
-                              photo: photo,
-                              isIgnored: _ignoredPhotos.contains(photo.asset.id),
-                              onToggleKeep: () => _toggleIgnoredPhoto(photo.asset.id),
-                              onOpenFullScreen: () {
-                                 Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => FullScreenImageView(
-                                      photos: _selectedPhotos,
-                                      initialIndex: index,
-                                      ignoredPhotos: _ignoredPhotos,
-                                      onToggleKeep: _toggleIgnoredPhoto,
-                                    ),
-                                  ),
-                                );
-                              },
-                            );
-                          },
-                        ),
-                ),
-              ),
-              
-              // ACTION BUTTONS
-              Padding(
-                padding: const EdgeInsets.all(20),
-                child: _isLoading
-                  ? _selectedPhotos.isEmpty
-                    ? SortingProgressIndicator(message: _sortingMessage)
-                    : const SizedBox.shrink()
-                  : _selectedPhotos.isNotEmpty
-                    // STATE: Photos are displayed for review
-                    ? Row(
-                        children: [
-                          Expanded(
-                            child: ActionButton(
-                              label: 'Re-sort',
-                              icon: Icons.refresh,
-                              onPressed: () {
-                                HapticFeedback.lightImpact();
-                                _sortPhotos();
-                              },
-                              backgroundColor: Colors.grey[700],
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          photosToDeleteCount > 0
-                            ? Expanded(
-                                child: ActionButton(
-                                  label: 'Delete ($photosToDeleteCount)',
-                                  icon: Icons.delete_forever,
-                                  onPressed: _deletePhotos,
-                                  backgroundColor: Colors.red[800],
-                                ),
-                              )
-                            : Expanded(
-                                child: ActionButton(
-                                  label: 'Pass',
-                                  icon: Icons.skip_next,
-                                  onPressed: () {
-                                    HapticFeedback.lightImpact();
-                                    setState(() {
-                                      _selectedPhotos = [];
-                                      _ignoredPhotos.clear();
-                                    });
-                                  },
-                                  backgroundColor: Colors.blue[700],
-                                ),
-                              ),
-                        ],
-                      )
-                    // STATE: Initial screen or after a deletion
-                    : Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          ActionButton(
-                            label: 'Sort Photos to Delete',
-                            icon: Icons.sort,
-                            onPressed: () {
-                              HapticFeedback.lightImpact();
-                              _sortPhotos(rescan: true);
-                            },
-                          ),
-                        ],
-                      ),
-              ),
-            ],
-          ),
+            ),
+            _buildBottomBar(),
+          ],
         ),
       ),
     );
   }
-}
 
-
-class StorageIndicator extends StatelessWidget {
-  final StorageInfo storageInfo;
-  const StorageIndicator({super.key, required this.storageInfo});
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Flexible(child: Text('Used Storage', style: Theme.of(context).textTheme.titleLarge)),
-            Flexible(child: Text('${storageInfo.usedSpaceGB} / ${storageInfo.totalSpaceGB}', style: Theme.of(context).textTheme.titleLarge)),
-          ],
+  Widget _buildMainContent() {
+    if (_selectedPhotos.isNotEmpty) {
+      return GridView.builder(
+        key: const ValueKey('grid'),
+        padding: const EdgeInsets.all(8),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 4,
+          crossAxisSpacing: 4,
+          mainAxisSpacing: 4,
         ),
-        const SizedBox(height: 12),
-        ClipRRect(
-          borderRadius: BorderRadius.circular(10),
-          child: LinearProgressIndicator(
-            value: storageInfo.usedPercentage / 100,
-            minHeight: 12,
-            backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
-            valueColor: AlwaysStoppedAnimation<Color>(
-              storageInfo.usedPercentage > 80 ? Colors.red.shade400 : Theme.of(context).colorScheme.primary,
-            ),
-          ),
-        ),
-      ],
+        itemCount: _selectedPhotos.length,
+        itemBuilder: (context, index) {
+          final photo = _selectedPhotos[index];
+          return PhotoCard(
+            key: ValueKey(photo.asset.id),
+            photo: photo,
+            isIgnored: _ignoredPhotos.contains(photo.asset.id),
+            onToggleKeep: () => _toggleIgnoredPhoto(photo.asset.id),
+            onOpenFullScreen: () {
+                Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => FullScreenImageView(
+                    photos: _selectedPhotos,
+                    initialIndex: index,
+                    ignoredPhotos: _ignoredPhotos,
+                    onToggleKeep: _toggleIgnoredPhoto,
+                  ),
+                ),
+              );
+            },
+          );
+        },
+      );
+    }
+    
+    if (_isLoading) {
+      return Center(child: CircularProgressIndicator(color: Theme.of(context).colorScheme.primaryContainer));
+    }
+
+    return EmptyState(
+      key: const ValueKey('empty'),
+      storageInfo: _storageInfo,
+      spaceSaved: _spaceSaved,
+      formattedSpaceSaved: _formatBytes(_spaceSaved),
+    );
+  }
+
+  Widget _buildBottomBar() {
+    if (_isDeleting) {
+      return const SizedBox.shrink(); 
+    }
+
+    int photosToDeleteCount = _selectedPhotos.length - _ignoredPhotos.length;
+
+    return Container(
+      padding: const EdgeInsets.all(20),
+      child: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 300),
+        child: _isLoading
+          ? SortingIndicatorBar(message: _sortingMessage, neonColor: Theme.of(context).colorScheme.primaryContainer)
+          : _selectedPhotos.isNotEmpty
+            ? Row(
+                children: [
+                  Expanded(
+                    child: ActionButton(
+                      label: 'Re-sort',
+                      onPressed: () {
+                        HapticFeedback.lightImpact();
+                        _sortPhotos();
+                      },
+                      isPrimary: false,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  photosToDeleteCount > 0
+                    ? Expanded(
+                        child: ActionButton(
+                          label: 'Delete ($photosToDeleteCount)',
+                          onPressed: _deletePhotos,
+                          isPrimary: true,
+                        ),
+                      )
+                    : Expanded(
+                        child: ActionButton(
+                          label: 'Pass',
+                          onPressed: () {
+                            HapticFeedback.lightImpact();
+                            setState(() {
+                              _selectedPhotos = [];
+                              _ignoredPhotos.clear();
+                            });
+                          },
+                          isPrimary: false,
+                        ),
+                      ),
+                ],
+              )
+            : ActionButton(
+                label: 'Analyze Photos',
+                onPressed: () {
+                  HapticFeedback.lightImpact();
+                  _sortPhotos(rescan: true);
+                },
+                isPrimary: true,
+              ),
+      ),
     );
   }
 }
@@ -647,128 +527,51 @@ class PhotoCard extends StatefulWidget {
   State<PhotoCard> createState() => _PhotoCardState();
 }
 
-class _PhotoCardState extends State<PhotoCard> with TickerProviderStateMixin {
-  late AnimationController _scaleController;
-  late Animation<double> _scaleAnimation;
-  
-  late AnimationController _wobbleController;
-  late Animation<double> _wobbleAnimation;
-
+class _PhotoCardState extends State<PhotoCard> {
   Uint8List? _thumbnailData;
 
   @override
   void initState() {
     super.initState();
     _loadThumbnail();
-
-    // Controller for the double-tap scale animation
-    _scaleController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 150),
-    );
-    _scaleAnimation = Tween<double>(begin: 1.0, end: 1.15).animate(
-      CurvedAnimation(parent: _scaleController, curve: Curves.easeOut),
-    );
-
-    // Controller for the wobble animation when a photo is kept
-    _wobbleController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 200),
-    );
-    _wobbleAnimation = Tween<double>(begin: -0.015, end: 0.015).animate(
-      CurvedAnimation(parent: _wobbleController, curve: Curves.easeInOut),
-    );
-
-    if (widget.isIgnored) {
-      _wobbleController.repeat(reverse: true);
-    } else {
-      _wobbleController.value = 0.5;
-    }
   }
 
   Future<void> _loadThumbnail() async {
-    final data = await widget.photo.asset.thumbnailDataWithSize(const ThumbnailSize(300, 300));
+    final data = await widget.photo.asset.thumbnailDataWithSize(const ThumbnailSize(200, 200));
     if (mounted) {
-      setState(() {
-        _thumbnailData = data;
-      });
+      setState(() => _thumbnailData = data);
     }
-  }
-
-  @override
-  void didUpdateWidget(covariant PhotoCard oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (widget.isIgnored != oldWidget.isIgnored) {
-      if (widget.isIgnored) {
-        // Play the bounce animation on state change
-        _scaleController.forward().then((_) => _scaleController.reverse());
-        // Start the wobble
-        _wobbleController.repeat(reverse: true);
-      } else {
-        // Stop the wobble
-        _wobbleController.stop();
-        _wobbleController.animateTo(0.5, curve: Curves.easeOut); // Settle back to center
-      }
-    }
-  }
-
-  @override
-  void dispose() {
-    _scaleController.dispose();
-    _wobbleController.dispose();
-    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final neonColor = Theme.of(context).colorScheme.primaryContainer;
+
     return GestureDetector(
       onTap: widget.onOpenFullScreen,
       onDoubleTap: widget.onToggleKeep,
-      onLongPress: widget.onToggleKeep,
-      child: RotationTransition(
-        turns: _wobbleAnimation,
-        child: Hero(
-          tag: widget.photo.asset.id,
-          child: ScaleTransition(
-            scale: _scaleAnimation,
-            child: Card(
-              elevation: 8,
-              shadowColor: Colors.black.withAlpha(128),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              clipBehavior: Clip.antiAlias,
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  if (_thumbnailData != null)
-                    Image.memory(_thumbnailData!, fit: BoxFit.cover)
-                  else
-                    const Center(child: CircularProgressIndicator()),
-                  
-                  if (widget.isIgnored)
-                    Container(
-                      color: Colors.green.withAlpha((255 * 0.5).round()),
-                      child: Center(
-                        child: Text(
-                          'KEEP',
-                          style: GoogleFonts.oswald(
-                            fontSize: 32,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                            shadows: [
-                              const Shadow(
-                                blurRadius: 10.0,
-                                color: Colors.black,
-                                offset: Offset(2.0, 2.0),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                ],
-              ),
+      child: Hero(
+        tag: widget.photo.asset.id,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              color: widget.isIgnored ? neonColor : Colors.transparent,
+              width: 3,
             ),
+            boxShadow: widget.isIgnored ? [
+              BoxShadow(
+                color: neonColor.withOpacity(0.5),
+                blurRadius: 8,
+                spreadRadius: 1,
+              )
+            ] : [],
           ),
+          clipBehavior: Clip.antiAlias,
+          child: _thumbnailData != null
+              ? Image.memory(_thumbnailData!, fit: BoxFit.cover)
+              : Container(color: Colors.grey[850]),
         ),
       ),
     );
@@ -777,53 +580,74 @@ class _PhotoCardState extends State<PhotoCard> with TickerProviderStateMixin {
 
 class ActionButton extends StatelessWidget {
   final String label;
-  final IconData icon;
   final VoidCallback? onPressed;
-  final Color? backgroundColor;
+  final bool isPrimary;
 
-  const ActionButton({super.key, required this.label, required this.icon, this.onPressed, this.backgroundColor});
+  const ActionButton({
+    super.key,
+    required this.label,
+    this.onPressed,
+    this.isPrimary = true,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return ElevatedButton.icon(
-      icon: Icon(icon),
-      label: Text(label),
-      onPressed: onPressed,
-      style: ElevatedButton.styleFrom(
-        backgroundColor: backgroundColor ?? Theme.of(context).colorScheme.primary,
-        minimumSize: const Size(double.infinity, 60),
-        shadowColor: (backgroundColor ?? Theme.of(context).colorScheme.primary).withAlpha(128),
-        elevation: 8,
+    final neonColor = Theme.of(context).colorScheme.primaryContainer;
+
+    return Container(
+      decoration: BoxDecoration(
+        boxShadow: [
+          BoxShadow(
+            color: neonColor.withOpacity(0.4),
+            blurRadius: 12,
+            spreadRadius: -2,
+          ),
+        ],
+        borderRadius: BorderRadius.circular(12),
       ),
+      height: 60,
+      width: double.infinity,
+      child: isPrimary
+        ? ElevatedButton(
+            onPressed: onPressed,
+            child: Text(label),
+          )
+        : OutlinedButton(
+            onPressed: onPressed,
+            child: Text(label),
+          ),
     );
   }
 }
 
-class SortingProgressIndicator extends StatefulWidget {
-  final String message;
-  const SortingProgressIndicator({super.key, required this.message});
+class EmptyState extends StatefulWidget {
+  final StorageInfo? storageInfo;
+  final double spaceSaved;
+  final String formattedSpaceSaved;
+
+  const EmptyState({
+    super.key,
+    required this.storageInfo,
+    required this.spaceSaved,
+    required this.formattedSpaceSaved,
+  });
 
   @override
-  State<SortingProgressIndicator> createState() => _SortingProgressIndicatorState();
+  State<EmptyState> createState() => _EmptyStateState();
 }
 
-class _SortingProgressIndicatorState extends State<SortingProgressIndicator> with TickerProviderStateMixin {
+class _EmptyStateState extends State<EmptyState> with SingleTickerProviderStateMixin {
   late AnimationController _controller;
-  double _progress = 0.0;
+  late Animation<double> _fadeAnimation;
 
   @override
   void initState() {
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 5),
-    )..addListener(() {
-      if (mounted) {
-        setState(() {
-          _progress = _controller.value;
-        });
-      }
-    });
+      duration: const Duration(milliseconds: 800),
+    );
+    _fadeAnimation = CurvedAnimation(parent: _controller, curve: Curves.easeIn);
     _controller.forward();
   }
 
@@ -835,60 +659,20 @@ class _SortingProgressIndicatorState extends State<SortingProgressIndicator> wit
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: 60,
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(12.0),
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            // The progress bar background and shimmer effect
-            Stack(
-              children: [
-                Container(color: Colors.grey[800]), // Background
-                FractionallySizedBox(
-                  widthFactor: _progress,
-                  alignment: Alignment.centerLeft,
-                  child: Shimmer.fromColors(
-                    baseColor: Colors.deepPurple,
-                    highlightColor: Colors.purple.shade300,
-                    child: Container(color: Colors.white), // Shimmer needs a solid child
-                  ),
-                ),
-              ],
-            ),
-            // The text on top
-            Text(
-              widget.message,
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                color: Colors.white,
-                shadows: [
-                  const Shadow(blurRadius: 4.0, color: Colors.black87, offset: Offset(1,1)),
-                ],
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class EmptyState extends StatelessWidget {
-  const EmptyState({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
+    return FadeTransition(
+      opacity: _fadeAnimation,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.photo_library, size: 100, color: Theme.of(context).colorScheme.primary.withAlpha(178)),
-          const SizedBox(height: 24),
-          Text('Press "Sort" to Begin', style: Theme.of(context).textTheme.displaySmall),
-          const SizedBox(height: 8),
-          Text('Let the AI find photos you can delete', style: Theme.of(context).textTheme.bodyLarge, textAlign: TextAlign.center,),
+          if (widget.storageInfo != null)
+            AuroraCircularIndicator(storageInfo: widget.storageInfo!)
+          else
+            const CircularProgressIndicator(color: Colors.white),
+          const SizedBox(height: 40),
+          SavedSpaceIndicator(
+            spaceSaved: widget.spaceSaved,
+            formattedSpaceSaved: widget.formattedSpaceSaved,
+          ),
         ],
       ),
     );

@@ -1,3 +1,4 @@
+
 import 'dart:io';
 import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
@@ -6,6 +7,7 @@ import 'package:photo_manager/photo_manager.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:photo_view/photo_view_gallery.dart';
 import 'photo_cleaner_service.dart'; // To get PhotoResult
+import 'main.dart'; // To get ActionButton
 
 class FullScreenImageView extends StatefulWidget {
   final List<PhotoResult> photos;
@@ -35,6 +37,7 @@ class _FullScreenImageViewState extends State<FullScreenImageView> {
     super.initState();
     _currentIndex = widget.initialIndex;
     _pageController = PageController(initialPage: _currentIndex);
+    // Use immersive mode for a cleaner look
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
   }
 
@@ -42,12 +45,12 @@ class _FullScreenImageViewState extends State<FullScreenImageView> {
   void dispose() {
     _pageController.dispose();
     _isZoomed.dispose();
+    // Restore system UI when leaving
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     super.dispose();
   }
 
   void _onPageChanged(int index) {
-    // Reset zoom state when changing page
     _isZoomed.value = false;
     setState(() {
       _currentIndex = index;
@@ -58,12 +61,13 @@ class _FullScreenImageViewState extends State<FullScreenImageView> {
   Widget build(BuildContext context) {
     final currentPhotoId = widget.photos[_currentIndex].asset.id;
     final isKept = widget.ignoredPhotos.contains(currentPhotoId);
+    final theme = Theme.of(context);
 
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: GestureDetector(
+        // Allow swiping down to dismiss the view
         onVerticalDragEnd: (details) {
-          // If the user swipes down and the image is not zoomed, pop the route.
           if (!_isZoomed.value && (details.primaryVelocity ?? 0) > 250) {
             Navigator.of(context).pop();
           }
@@ -85,17 +89,23 @@ class _FullScreenImageViewState extends State<FullScreenImageView> {
                 );
               },
               onPageChanged: _onPageChanged,
-              backgroundDecoration: const BoxDecoration(color: Colors.black),
+              backgroundDecoration: BoxDecoration(color: theme.scaffoldBackgroundColor),
               scrollPhysics: const BouncingScrollPhysics(),
-              loadingBuilder: (context, event) => const Center(child: CircularProgressIndicator()),
+              loadingBuilder: (context, event) => const Center(child: CircularProgressIndicator(color: Colors.white)),
             ),
-            // App Bar on top
+            // Top Gradient and App Bar
             Positioned(
               top: 0,
               left: 0,
               right: 0,
               child: Container(
-                color: Colors.black.withAlpha(102), // Corrected deprecated withOpacity
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [theme.scaffoldBackgroundColor.withOpacity(0.8), Colors.transparent],
+                  ),
+                ),
                 child: SafeArea(
                   child: AppBar(
                     backgroundColor: Colors.transparent,
@@ -106,32 +116,35 @@ class _FullScreenImageViewState extends State<FullScreenImageView> {
                     ),
                     title: Text(
                       '${_currentIndex + 1} of ${widget.photos.length}',
-                      style: const TextStyle(color: Colors.white),
+                      style: theme.textTheme.titleMedium,
                     ),
                     centerTitle: true,
                   ),
                 ),
               ),
             ),
-            // Floating Action Button
+            // Bottom Action Button with Gradient
             Positioned(
-              bottom: 30,
-              left: 20,
-              child: FloatingActionButton.extended(
-                backgroundColor: isKept ? Colors.green : Theme.of(context).colorScheme.secondary,
-                onPressed: () {
-                  // This setState only rebuilds the FAB and AppBar, not the gallery pages
-                  setState(() {
-                    widget.onToggleKeep(currentPhotoId);
-                  });
-                },
-                icon: Icon(
-                  isKept ? Icons.check_circle : Icons.do_not_disturb_on,
-                  color: Colors.white,
+              bottom: 0,
+              left: 0,
+              right: 0,
+              child: Container(
+                 decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.bottomCenter,
+                    end: Alignment.topCenter,
+                    colors: [theme.scaffoldBackgroundColor.withOpacity(0.8), Colors.transparent],
+                  ),
                 ),
-                label: Text(
-                  isKept ? 'Kept' : 'Keep',
-                  style: const TextStyle(color: Colors.white),
+                padding: const EdgeInsets.fromLTRB(20, 30, 20, 40),
+                child: ActionButton(
+                  label: isKept ? 'Kept' : 'Keep',
+                  onPressed: () {
+                    setState(() {
+                      widget.onToggleKeep(currentPhotoId);
+                    });
+                  },
+                  isPrimary: !isKept, // Solid white for 'Keep', outlined for 'Kept'
                 ),
               ),
             ),
@@ -142,8 +155,6 @@ class _FullScreenImageViewState extends State<FullScreenImageView> {
   }
 }
 
-// A stateful widget to manage loading and displaying a single photo.
-// This prevents reloading when the parent widget rebuilds.
 class PhotoPage extends StatefulWidget {
   final AssetEntity asset;
   final ValueNotifier<bool> isZoomedNotifier;
@@ -171,21 +182,13 @@ class _PhotoPageState extends State<PhotoPage> {
 
   Future<void> _loadData() async {
     try {
-      // First, load the thumbnail for a fast preview.
       final thumb = await widget.asset.thumbnailDataWithSize(const ThumbnailSize(300, 300));
-      if (mounted) {
-        setState(() => _thumbnailData = thumb);
-      }
+      if (mounted) setState(() => _thumbnailData = thumb);
 
-      // Then, load the full-resolution file.
       final file = await widget.asset.file;
-      if (mounted) {
-        setState(() => _file = file);
-      }
+      if (mounted) setState(() => _file = file);
     } catch (e) {
-      if (mounted) {
-        setState(() => _loadError = e);
-      }
+      if (mounted) setState(() => _loadError = e);
     }
   }
 
@@ -198,25 +201,17 @@ class _PhotoPageState extends State<PhotoPage> {
           children: [
             const Icon(Icons.error_outline, color: Colors.red, size: 60),
             const SizedBox(height: 16),
-            const Text(
-              'Failed to load image',
-              style: TextStyle(color: Colors.white, fontSize: 18),
-            ),
+            Text('Failed to load image', style: Theme.of(context).textTheme.titleMedium),
             if (kDebugMode)
               Padding(
                 padding: const EdgeInsets.all(16.0),
-                child: Text(
-                  _loadError.toString(),
-                  style: const TextStyle(color: Colors.grey),
-                  textAlign: TextAlign.center,
-                ),
+                child: Text(_loadError.toString(), style: Theme.of(context).textTheme.bodyMedium, textAlign: TextAlign.center),
               ),
           ],
         ),
       );
     }
 
-    // If the full file is available, show it.
     if (_file != null) {
       return PhotoView(
         imageProvider: FileImage(_file!),
@@ -226,26 +221,18 @@ class _PhotoPageState extends State<PhotoPage> {
           widget.isZoomedNotifier.value = state != PhotoViewScaleState.initial;
         },
         loadingBuilder: (context, event) {
-          // While the full image is decoding, we can still show the thumbnail
-          // if it's available. This creates a smoother experience.
           if (_thumbnailData != null) {
             return PhotoView(imageProvider: MemoryImage(_thumbnailData!));
           }
-          return const Center(child: CircularProgressIndicator());
+          return const Center(child: CircularProgressIndicator(color: Colors.white));
         },
       );
     }
 
-    // If only the thumbnail is available, show it.
     if (_thumbnailData != null) {
-      return PhotoView(
-        imageProvider: MemoryImage(_thumbnailData!),
-        minScale: PhotoViewComputedScale.contained,
-        maxScale: PhotoViewComputedScale.covered * 2.5,
-      );
+      return PhotoView(imageProvider: MemoryImage(_thumbnailData!));
     }
 
-    // While everything is loading.
-    return const Center(child: CircularProgressIndicator());
+    return const Center(child: CircularProgressIndicator(color: Colors.white));
   }
 }
