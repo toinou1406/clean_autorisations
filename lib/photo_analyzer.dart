@@ -130,7 +130,7 @@ class PhotoAnalysisResult {
 
         if (kDebugMode) {
 
-          print("Photo [${md5Hash.substring(0, 6)}...]: Final Score = ${score} (Blur: $blurScore, Lum: $luminanceScore, Entropy: $entropyScore, Edges: $edgeDensityScore, isSS: $isFromScreenshotAlbum)");
+          print("Photo [${md5Hash.substring(0, 6)}...]: Final Score = $score (Blur: $blurScore, Lum: $luminanceScore, Entropy: $entropyScore, Edges: $edgeDensityScore, isSS: $isFromScreenshotAlbum)");
 
         }
 

@@ -58,7 +58,7 @@ Future<dynamic> analyzePhotoInIsolate(IsolateData isolateData) async {
           isFromScreenshotAlbum: isolateData.isFromScreenshotAlbum,
         );
         return IsolateAnalysisResult(asset.id, analysisResult);
-    } catch (e, stackTrace) {
+    } catch (e) {
         // If a single analysis fails, we don't want to crash the whole batch.
         return null;
     }
