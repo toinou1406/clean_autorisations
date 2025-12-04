@@ -97,6 +97,13 @@ class PhotoAnalysisResult {
 
         }
 
+        
+
+        // --- NEW RULE: Dark AND Blurry is a huge penalty ---
+        if (luminanceScore < 60.0 && blurScore < 120.0) {
+            score += 400;
+        }
+
     
 
         // --- RULE 4: Bright photos get a big bonus... ---
@@ -291,7 +298,7 @@ class PhotoAnalyzer {
     }
     
     // Create a smaller, grayscale version for fast heuristics. This is a KEY optimization.
-    final lowResGray = img.copyResize(originalImage, width: 32, height: 32, interpolation: img.Interpolation.average);
+    final lowResGray = img.copyResize(originalImage, width: 64, height: 64, interpolation: img.Interpolation.average);
     img.grayscale(lowResGray);
 
     // --- STAGE 1: Run Hashing & Fast Heuristics in Parallel ---

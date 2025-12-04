@@ -15,7 +15,8 @@ import 'package:fastclean/main.dart';
 void main() {
   testWidgets('Initial UI smoke test', (WidgetTester tester) async {
     // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+    // We provide the home route as the initial route for this test.
+    await tester.pumpWidget(const MyApp(initialRoute: AppRoutes.home));
 
     // Verify that the main title is present.
     expect(find.text('AI Photo Cleaner'), findsOneWidget);

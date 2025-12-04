@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:photo_manager/photo_manager.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class PermissionScreen extends StatefulWidget {
   final VoidCallback onPermissionGranted;
@@ -47,6 +48,8 @@ class _PermissionScreenState extends State<PermissionScreen>
     final result = await PhotoManager.requestPermissionExtend();
 
     if (result.hasAccess) {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('permission_granted', true);
       widget.onPermissionGranted();
     } else {
       if (mounted) {
