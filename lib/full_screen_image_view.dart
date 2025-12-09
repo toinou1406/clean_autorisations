@@ -4,9 +4,12 @@ import 'package:photo_view/photo_view_gallery.dart';
 import 'package:fastclean/photo_analyzer.dart';
 import 'package:fastclean/l10n/app_localizations.dart';
 import 'package:flutter/services.dart';
+import 'package:photo_manager/photo_manager.dart';
+import 'package:photo_manager_image_provider/photo_manager_image_provider.dart';
+
 
 class FullScreenImageView extends StatefulWidget {
-  final List<PhotoResult> photos;
+  final List<PhotoAnalysisResult> photos;
   final int initialIndex;
   final Set<String> ignoredPhotos;
   final void Function(String) onToggleKeep;
@@ -50,7 +53,7 @@ class _FullScreenImageViewState extends State<FullScreenImageView> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = AppLocalizations.of(context);
     final currentPhoto = widget.photos[_currentIndex];
     final isKept = widget.ignoredPhotos.contains(currentPhoto.asset.id);
 
@@ -86,7 +89,12 @@ class _FullScreenImageViewState extends State<FullScreenImageView> {
     );
   }
 
-  Widget _buildAnimatedUi(ThemeData theme, AppLocalizations l10n, bool isKept, PhotoResult currentPhoto) {
+  Widget _buildAnimatedUi(
+    ThemeData theme,
+    AppLocalizations l10n,
+    bool isKept,
+    PhotoAnalysisResult currentPhoto,
+  ) {
     return AnimatedOpacity(
       opacity: _isUiVisible ? 1.0 : 0.0,
       duration: const Duration(milliseconds: 250),
@@ -100,7 +108,7 @@ class _FullScreenImageViewState extends State<FullScreenImageView> {
             child: Container(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [Colors.black.withOpacity(0.6), Colors.transparent],
+                  colors: [Colors.black.withAlpha(153), Colors.transparent], // ~0.6 opacity
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                 ),
@@ -113,8 +121,11 @@ class _FullScreenImageViewState extends State<FullScreenImageView> {
                   onPressed: () => Navigator.of(context).pop(),
                 ),
                 title: Text(
-                  "${_currentIndex + 1} / ${widget.photos.length}",
-                  style: theme.textTheme.titleLarge?.copyWith(color: Colors.white, fontWeight: FontWeight.w600),
+                  l10n.fullScreenTitle(widget.photos.length, _currentIndex + 1),
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
                 centerTitle: true,
               ),
@@ -130,7 +141,7 @@ class _FullScreenImageViewState extends State<FullScreenImageView> {
               padding: const EdgeInsets.fromLTRB(24, 24, 24, 40),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [Colors.black.withOpacity(0.8), Colors.transparent],
+                  colors: [Colors.black.withAlpha(204), Colors.transparent], // ~0.8 opacity
                   begin: Alignment.bottomCenter,
                   end: Alignment.topCenter,
                 ),
@@ -148,26 +159,42 @@ class _FullScreenImageViewState extends State<FullScreenImageView> {
     );
   }
 
-  Widget _buildKeepButton(AppLocalizations l10n, ThemeData theme, bool isKept, PhotoResult currentPhoto) {
+  Widget _buildKeepButton(
+    AppLocalizations l10n,
+    ThemeData theme,
+    bool isKept,
+    PhotoAnalysisResult currentPhoto,
+  ) {
     return ElevatedButton.icon(
       icon: AnimatedSwitcher(
         duration: const Duration(milliseconds: 200),
-        transitionBuilder: (child, animation) => ScaleTransition(scale: animation, child: child),
+        transitionBuilder: (child, animation) =>
+            ScaleTransition(scale: animation, child: child),
         child: isKept
-            ? Icon(Icons.check_circle_rounded, key: const ValueKey('kept'), color: theme.colorScheme.primary)
-            : Icon(Icons.radio_button_unchecked_rounded, key: const ValueKey('not_kept')),
+            ? Icon(
+                Icons.check_circle_rounded,
+                key: const ValueKey('kept'),
+                color: theme.colorScheme.primary,
+              )
+            : const Icon(
+                Icons.radio_button_unchecked_rounded,
+                key: ValueKey('not_kept'),
+              ),
       ),
       label: Text(
-        isKept ? l10n.keep : l10n.keep, // Text remains the same, but style could change
+        isKept ? l10n.kept : l10n.keep,
         style: theme.elevatedButtonTheme.style?.textStyle?.resolve({}),
       ),
       style: ElevatedButton.styleFrom(
-        // A slightly different style for this specific context
-        backgroundColor: isKept ? theme.colorScheme.primary.withOpacity(0.15) : theme.colorScheme.surface.withOpacity(0.8),
+        backgroundColor: isKept
+            ? theme.colorScheme.primary.withAlpha(38) // ~0.15 opacity
+            : theme.colorScheme.surface.withAlpha(204), // ~0.8 opacity
         foregroundColor: isKept ? theme.colorScheme.primary : Colors.white,
         padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-        side: isKept ? BorderSide(color: theme.colorScheme.primary, width: 2) : BorderSide.none,
+        side: isKept
+            ? BorderSide(color: theme.colorScheme.primary, width: 2)
+            : BorderSide.none,
         elevation: 0,
       ),
       onPressed: () {

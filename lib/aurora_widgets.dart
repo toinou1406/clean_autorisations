@@ -1,4 +1,3 @@
-import 'dart:math';
 import 'package:flutter/material.dart';
 
 /// A widget that applies a subtle, animated noise texture as a background.
@@ -104,7 +103,7 @@ class _PulsingIconState extends State<PulsingIcon> with SingleTickerProviderStat
             shadows: [
               // A soft glow effect using shadows, matching the new design language
               BoxShadow(
-                color: iconColor.withOpacity(0.5),
+                color: iconColor.withAlpha(128), // ~0.5 opacity
                 blurRadius: 12.0,
                 spreadRadius: 2.0,
               ),

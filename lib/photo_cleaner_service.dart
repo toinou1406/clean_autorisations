@@ -174,8 +174,10 @@ class PhotoCleanerService {
     final Map<String, AssetEntity> assetMap = {for (var asset in assetsToAnalyze) asset.id: asset};
 
     _allPhotos.addAll(
-        analysisResults.where((r) => assetMap.containsKey(r.assetId)).map((r) => PhotoResult(assetMap[r.assetId]!, r.analysis ?? PhotoAnalysisResult.empty()))
-    );
+      analysisResults
+          .where((r) => assetMap.containsKey(r.assetId))
+          .map((r) => PhotoResult(assetMap[r.assetId]!, r.analysis))
+);
   }
 
   Future<List<PhotoResult>> selectPhotosToDelete({List<String> excludedIds = const []}) async {

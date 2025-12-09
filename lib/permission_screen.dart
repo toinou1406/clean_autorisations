@@ -58,11 +58,13 @@ class _PermissionScreenState extends State<PermissionScreen> with SingleTickerPr
       await prefs.setBool('permission_granted', true);
       widget.onPermissionGranted();
     } else {
-      // Optionally, show a dialog or a snackbar explaining why permission is needed.
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(AppLocalizations.of(context)!.photoAccessRequired)),
-        );
+        final l10n = AppLocalizations.of(context);
+        if (l10n != null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(l10n.photoAccessRequired)),
+          );
+        }
       }
     }
   }
@@ -83,11 +85,15 @@ class _PermissionScreenState extends State<PermissionScreen> with SingleTickerPr
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
 
+    if (l10n == null) {
+      // Localization not yet loaded
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
     return Scaffold(
-      // Use the NoiseBox for a consistent background texture
       body: NoiseBox(
         child: SafeArea(
           child: FadeTransition(
@@ -99,7 +105,6 @@ class _PermissionScreenState extends State<PermissionScreen> with SingleTickerPr
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   const Spacer(flex: 2),
-                  // Pulsing icon for a modern, engaging feel
                   PulsingIcon(
                     icon: Icons.shield_outlined,
                     color: theme.colorScheme.primary,
@@ -118,12 +123,11 @@ class _PermissionScreenState extends State<PermissionScreen> with SingleTickerPr
                     l10n.permissionDescription,
                     textAlign: TextAlign.center,
                     style: theme.textTheme.bodyLarge?.copyWith(
-                      color: theme.colorScheme.onSurface.withOpacity(0.7),
+                      color: theme.colorScheme.onSurface.withAlpha(179), // ~0.7 opacity
                       height: 1.6,
                     ),
                   ),
                   const Spacer(flex: 3),
-                  // The main action button
                   ElevatedButton(
                     onPressed: _requestPermission,
                     style: theme.elevatedButtonTheme.style?.copyWith(
@@ -132,7 +136,6 @@ class _PermissionScreenState extends State<PermissionScreen> with SingleTickerPr
                     child: Text(l10n.grantPermission),
                   ),
                   const SizedBox(height: 40),
-                  // Language selector at the bottom
                   _buildLanguageSelector(theme, l10n),
                   const SizedBox(height: 20),
                 ],
@@ -145,7 +148,6 @@ class _PermissionScreenState extends State<PermissionScreen> with SingleTickerPr
   }
 
   Widget _buildLanguageSelector(ThemeData theme, AppLocalizations l10n) {
-    // Ensure _currentLanguageCode is not null before building
     if (_currentLanguageCode == null) return const SizedBox.shrink();
 
     return Column(
@@ -153,19 +155,18 @@ class _PermissionScreenState extends State<PermissionScreen> with SingleTickerPr
         Text(
           l10n.chooseYourLanguage.toUpperCase(),
           style: theme.textTheme.bodyMedium?.copyWith(
-            color: theme.colorScheme.onSurface.withOpacity(0.5),
+            color: theme.colorScheme.onSurface.withAlpha(128), // ~0.5 opacity
             fontWeight: FontWeight.w600,
             letterSpacing: 0.8,
           ),
         ),
         const SizedBox(height: 16),
-        // Using a segmented button for a clean, modern look
         SegmentedButton<String>(
           segments: const [
             ButtonSegment(value: 'en', label: Text('🇬🇧 English')),
             ButtonSegment(value: 'fr', label: Text('🇫🇷 Français')),
             ButtonSegment(value: 'es', label: Text('🇪🇸 Español')),
-             ButtonSegment(value: 'zh', label: Text('🇨🇳 中文')),
+            ButtonSegment(value: 'zh', label: Text('🇨🇳 中文')),
           ],
           selected: {_currentLanguageCode!},
           onSelectionChanged: (newSelection) {
@@ -173,9 +174,9 @@ class _PermissionScreenState extends State<PermissionScreen> with SingleTickerPr
           },
           style: SegmentedButton.styleFrom(
             backgroundColor: theme.colorScheme.surface,
-            foregroundColor: theme.colorScheme.onSurface.withOpacity(0.7),
+            foregroundColor: theme.colorScheme.onSurface.withAlpha(179), // ~0.7 opacity
             selectedForegroundColor: theme.colorScheme.primary,
-            selectedBackgroundColor: theme.colorScheme.primary.withOpacity(0.1),
+            selectedBackgroundColor: theme.colorScheme.primary.withAlpha(26), // ~0.1 opacity
             side: BorderSide(color: theme.dividerColor),
           ),
         ),

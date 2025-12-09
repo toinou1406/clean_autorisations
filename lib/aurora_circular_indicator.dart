@@ -11,6 +11,7 @@ class StorageCircularIndicator extends StatelessWidget {
 
   String _formatBytes(double bytes) {
     // Simple and effective byte formatting
+    if (bytes <= 0) return "0 B";
     if (bytes < 1024) return "${bytes.toStringAsFixed(0)} B";
     if (bytes < 1024 * 1024) return "${(bytes / 1024).toStringAsFixed(1)} KB";
     if (bytes < 1024 * 1024 * 1024) return "${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB";
@@ -20,8 +21,10 @@ class StorageCircularIndicator extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final l10n = AppLocalizations.of(context)!;
-    final double percentage = storageInfo.usedSpace / storageInfo.totalSpace;
+    final l10n = AppLocalizations.of(context);
+    final double percentage = storageInfo.totalSpace > 0
+        ? storageInfo.usedSpace / storageInfo.totalSpace
+        : 0.0;
 
     return CircularPercentIndicator(
       radius: 120.0,
@@ -30,7 +33,7 @@ class StorageCircularIndicator extends StatelessWidget {
       // The clean, modern progress bar
       progressColor: theme.colorScheme.primary,
       // The subtle grey contour for the background
-      backgroundColor: theme.dividerColor.withOpacity(0.1),
+      backgroundColor: theme.dividerColor.withAlpha(26), // ~0.1 opacity
       circularStrokeCap: CircularStrokeCap.round,
       animation: true,
       animationDuration: 1200,
@@ -48,9 +51,9 @@ class StorageCircularIndicator extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           Text(
-            l10n.used.toUpperCase(), // "USED"
+            l10n.storageUsed.toUpperCase(), // Changed from 'used'
             style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurface.withOpacity(0.6),
+              color: theme.colorScheme.onSurface.withAlpha(153), // ~0.6 opacity
               fontWeight: FontWeight.w600,
               letterSpacing: 0.5,
             ),
@@ -61,10 +64,10 @@ class StorageCircularIndicator extends StatelessWidget {
       footer: Padding(
         padding: const EdgeInsets.only(top: 24.0),
         child: Text(
-          "${_formatBytes(storageInfo.usedSpace)} / ${_formatBytes(storageInfo.totalSpace)}",
+          "${_formatBytes(storageInfo.usedSpace.toDouble())} / ${_formatBytes(storageInfo.totalSpace.toDouble())}",
           style: theme.textTheme.titleMedium?.copyWith(
             fontWeight: FontWeight.w600,
-            color: theme.colorScheme.onSurface.withOpacity(0.8),
+            color: theme.colorScheme.onSurface.withAlpha(204), // ~0.8 opacity
           ),
         ),
       ),

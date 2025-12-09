@@ -39,10 +39,10 @@ class _SortingProgressIndicatorState extends State<SortingProgressIndicator>
         color: theme.cardColor, // Uses the card color from the theme
         borderRadius: BorderRadius.circular(16),
         // The requested grey contour
-        border: Border.all(color: theme.dividerColor.withOpacity(0.15), width: 1.5),
+        border: Border.all(color: theme.dividerColor.withAlpha(38), width: 1.5), // ~0.15 opacity
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withAlpha(13), // ~0.05 opacity
             blurRadius: 10,
             offset: const Offset(0, -2), // Shadow at the top for a lifted feel
           ),
@@ -73,7 +73,7 @@ class _SortingProgressIndicatorState extends State<SortingProgressIndicator>
             borderRadius: BorderRadius.circular(8),
             child: LinearProgressIndicator(
               value: null, // Indeterminate
-              backgroundColor: theme.dividerColor.withOpacity(0.1),
+              backgroundColor: theme.dividerColor.withAlpha(26), // ~0.1 opacity
               valueColor: _controller.drive(ColorTween(
                 begin: theme.colorScheme.primary,
                 end: theme.colorScheme.secondary,

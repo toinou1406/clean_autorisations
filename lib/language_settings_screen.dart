@@ -46,81 +46,59 @@ class _LanguageSettingsScreenState extends State<LanguageSettingsScreen> {
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final theme = Theme.of(context);
+ @override
+Widget build(BuildContext context) {
+  final l10n = AppLocalizations.of(context);
+  final theme = Theme.of(context);
 
-    // This check ensures that we don't build the list with a null language code.
-    if (_currentLanguageCode == null) {
-      return Scaffold(
-        appBar: AppBar(
-          title: Text(l10n.settings),
-          centerTitle: true,
-        ),
-        body: const Center(child: CircularProgressIndicator()),
-      );
-    }
-
+  if (_currentLanguageCode == null || l10n == null) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(l10n.settings),
+        title: Text(l10n?.settings ?? 'Settings'), 
         centerTitle: true,
-        // Adding a subtle bottom border to the AppBar for detail
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(1.0),
-          child: Container(
-            color: theme.dividerColor.withOpacity(0.1),
-            height: 1.0,
-          ),
-        ),
       ),
-      body: Padding(
-        padding: const EdgeInsets.fromLTRB(16.0, 24.0, 16.0, 16.0), // Add top padding
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // This title is now part of the body
-            Text(
-              l10n.chooseYourLanguage,
-              style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 24),
-            Expanded(
-              child: ListView(
-                children: [
-                  _buildLanguageOption(
-                    context: context,
-                    code: 'en',
-                    name: 'English',
-                    flag: '🇬🇧',
-                  ),
-                  _buildLanguageOption(
-                    context: context,
-                    code: 'fr',
-                    name: 'Français',
-                    flag: '🇫🇷',
-                  ),
-                  _buildLanguageOption(
-                    context: context,
-                    code: 'es',
-                    name: 'Español',
-                    flag: '🇪🇸',
-                  ),
-                   _buildLanguageOption(
-                    context: context,
-                    code: 'zh',
-                    name: '中文',
-                    flag: '🇨🇳',
-                  ),
-                ],
-              ), // Use a separated list for visual clarity
-            ),
-          ],
-        ),
-      ),
+      body: const Center(child: CircularProgressIndicator()),
     );
   }
+
+  return Scaffold(
+    appBar: AppBar(
+      title: Text(l10n.settings),
+      centerTitle: true,
+      bottom: PreferredSize(
+        preferredSize: const Size.fromHeight(1.0),
+        child: Container(
+          color: theme.dividerColor.withAlpha(26), // ~0.1 opacity
+          height: 1.0,
+        ),
+      ),
+    ),
+    body: Padding(
+      padding: const EdgeInsets.fromLTRB(16.0, 24.0, 16.0, 16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            l10n.chooseYourLanguage,
+            style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 24),
+          Expanded(
+            child: ListView(
+              children: [
+                _buildLanguageOption(context: context, code: 'en', name: 'English', flag: '🇬🇧'),
+                _buildLanguageOption(context: context, code: 'fr', name: 'Français', flag: '🇫🇷'),
+                _buildLanguageOption(context: context, code: 'es', name: 'Español', flag: '🇪🇸'),
+                _buildLanguageOption(context: context, code: 'zh', name: '中文', flag: '🇨🇳'),
+              ],
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
 
   Widget _buildLanguageOption({
     required BuildContext context,
@@ -134,8 +112,7 @@ class _LanguageSettingsScreenState extends State<LanguageSettingsScreen> {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12.0),
       child: Material(
-        // Use a subtle color from the theme for the background
-        color: isSelected ? theme.colorScheme.primary.withOpacity(0.1) : theme.cardColor,
+        color: isSelected ? theme.colorScheme.primary.withAlpha(26) : theme.cardColor, // ~0.1 opacity
         borderRadius: BorderRadius.circular(16),
         child: InkWell(
           borderRadius: BorderRadius.circular(16),
@@ -144,9 +121,8 @@ class _LanguageSettingsScreenState extends State<LanguageSettingsScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(16),
-              // The grey contour you requested
               border: Border.all(
-                color: isSelected ? theme.colorScheme.primary : theme.dividerColor.withOpacity(0.2),
+                color: isSelected ? theme.colorScheme.primary : theme.dividerColor.withAlpha(51), // ~0.2 opacity
                 width: isSelected ? 2.0 : 1.5,
               ),
             ),
@@ -163,7 +139,6 @@ class _LanguageSettingsScreenState extends State<LanguageSettingsScreen> {
                     ),
                   ),
                 ),
-                // Animated check icon for a polished feel
                 AnimatedOpacity(
                   duration: const Duration(milliseconds: 200),
                   opacity: isSelected ? 1.0 : 0.0,
