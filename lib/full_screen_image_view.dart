@@ -36,10 +36,31 @@ class _FullScreenImageViewState extends State<FullScreenImageView> {
     _pageController = PageController(initialPage: widget.initialIndex);
   }
 
+  // --- Pre-caching Implementation ---
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Pre-cache images around the initial viewing index for a smoother experience.
+    _precacheImage(widget.initialIndex + 1);
+    _precacheImage(widget.initialIndex - 1);
+  }
+
+  void _precacheImage(int index) {
+    if (!mounted) return;
+    if (index >= 0 && index < widget.photos.length) {
+      final provider = AssetEntityImageProvider(widget.photos[index].asset, isOriginal: true);
+      precacheImage(provider, context);
+    }
+  }
+  // --- End Pre-caching ---
+
   void _onPageChanged(int index) {
     setState(() {
       _currentIndex = index;
     });
+    // As the user swipes, pre-cache the next images in the direction of the swipe.
+    _precacheImage(index + 1);
+    _precacheImage(index - 1);
   }
 
   void _toggleUiVisibility() {
@@ -47,6 +68,18 @@ class _FullScreenImageViewState extends State<FullScreenImageView> {
       _isUiVisible = !_isUiVisible;
     });
   }
+
+  // --- "Keep" Button Fix ---
+  void _handleToggleKeep() {
+    final currentPhotoId = widget.photos[_currentIndex].asset.id;
+    HapticFeedback.lightImpact();
+    // Calling setState here rebuilds this widget to reflect the change in the button's state,
+    // even though the actual state is managed by the parent (HomeScreen).
+    setState(() {
+      widget.onToggleKeep(currentPhotoId);
+    });
+  }
+  // --- End "Keep" Button Fix ---
 
   @override
   Widget build(BuildContext context) {
@@ -59,7 +92,6 @@ class _FullScreenImageViewState extends State<FullScreenImageView> {
       backgroundColor: Colors.black,
       body: Stack(
         children: [
-          // The main photo gallery
           GestureDetector(
             onTap: _toggleUiVisibility,
             child: PhotoViewGallery.builder(
@@ -77,11 +109,20 @@ class _FullScreenImageViewState extends State<FullScreenImageView> {
               },
               onPageChanged: _onPageChanged,
               backgroundDecoration: const BoxDecoration(color: Colors.black),
+              loadingBuilder: (context, event) => Center(
+                child: SizedBox(
+                  width: 30.0,
+                  height: 30.0,
+                  child: CircularProgressIndicator(
+                    value: event == null || event.expectedTotalBytes == null
+                        ? null
+                        : event.cumulativeBytesLoaded / event.expectedTotalBytes!,
+                  ),
+                ),
+              ),
             ),
           ),
-
-          // Animated UI elements (Header and Footer)
-          _buildAnimatedUi(theme, l10n, isKept, currentPhoto),
+          _buildAnimatedUi(theme, l10n, isKept),
         ],
       ),
     );
@@ -91,14 +132,13 @@ class _FullScreenImageViewState extends State<FullScreenImageView> {
     ThemeData theme,
     AppLocalizations l10n,
     bool isKept,
-    PhotoResult currentPhoto,
   ) {
     return AnimatedOpacity(
       opacity: _isUiVisible ? 1.0 : 0.0,
       duration: const Duration(milliseconds: 250),
       child: Stack(
         children: [
-          // Top Bar (Header)
+          // Header
           Positioned(
             top: 0,
             left: 0,
@@ -106,7 +146,7 @@ class _FullScreenImageViewState extends State<FullScreenImageView> {
             child: Container(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [Colors.black.withAlpha(153), Colors.transparent], // ~0.6 opacity
+                  colors: [Colors.black.withOpacity(0.6), Colors.transparent],
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                 ),
@@ -115,22 +155,21 @@ class _FullScreenImageViewState extends State<FullScreenImageView> {
                 backgroundColor: Colors.transparent,
                 elevation: 0,
                 leading: IconButton(
-                  icon: const Icon(Icons.arrow_back, color: Colors.white),
+                  icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white),
                   onPressed: () => Navigator.of(context).pop(),
                 ),
                 title: Text(
                   l10n.fullScreenTitle(widget.photos.length, _currentIndex + 1),
                   style: theme.textTheme.titleLarge?.copyWith(
                     color: Colors.white,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
                 centerTitle: true,
               ),
             ),
           ),
-
-          // Bottom Action Bar
+          // Footer
           Positioned(
             bottom: 0,
             left: 0,
@@ -139,7 +178,7 @@ class _FullScreenImageViewState extends State<FullScreenImageView> {
               padding: const EdgeInsets.fromLTRB(24, 24, 24, 40),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [Colors.black.withAlpha(204), Colors.transparent], // ~0.8 opacity
+                  colors: [Colors.black.withOpacity(0.8), Colors.transparent],
                   begin: Alignment.bottomCenter,
                   end: Alignment.topCenter,
                 ),
@@ -147,7 +186,7 @@ class _FullScreenImageViewState extends State<FullScreenImageView> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  _buildKeepButton(l10n, theme, isKept, currentPhoto),
+                  _buildKeepButton(l10n, theme, isKept),
                 ],
               ),
             ),
@@ -161,7 +200,6 @@ class _FullScreenImageViewState extends State<FullScreenImageView> {
     AppLocalizations l10n,
     ThemeData theme,
     bool isKept,
-    PhotoResult currentPhoto,
   ) {
     return ElevatedButton.icon(
       icon: AnimatedSwitcher(
@@ -171,12 +209,12 @@ class _FullScreenImageViewState extends State<FullScreenImageView> {
         child: isKept
             ? Icon(
                 Icons.check_circle_rounded,
-                key: const ValueKey('kept'),
+                key: const ValueKey('kept_icon'),
                 color: theme.colorScheme.primary,
               )
             : const Icon(
                 Icons.radio_button_unchecked_rounded,
-                key: ValueKey('not_kept'),
+                key: const ValueKey('not_kept_icon'),
               ),
       ),
       label: Text(
@@ -185,20 +223,17 @@ class _FullScreenImageViewState extends State<FullScreenImageView> {
       ),
       style: ElevatedButton.styleFrom(
         backgroundColor: isKept
-            ? theme.colorScheme.primary.withAlpha(38) // ~0.15 opacity
-            : theme.colorScheme.surface.withAlpha(204), // ~0.8 opacity
+            ? theme.colorScheme.primary.withOpacity(0.15)
+            : theme.colorScheme.surface.withOpacity(0.8),
         foregroundColor: isKept ? theme.colorScheme.primary : Colors.white,
         padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+        shape: const StadiumBorder(),
         side: isKept
             ? BorderSide(color: theme.colorScheme.primary, width: 2)
             : BorderSide.none,
         elevation: 0,
       ),
-      onPressed: () {
-        HapticFeedback.lightImpact();
-        widget.onToggleKeep(currentPhoto.asset.id);
-      },
+      onPressed: _handleToggleKeep,
     );
   }
 }

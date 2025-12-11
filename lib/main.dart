@@ -126,28 +126,43 @@ class _MyAppState extends State<MyApp> {
     );
 
     final ThemeData darkTheme = ThemeData(
-      useMaterial3: true,
-      brightness: Brightness.dark,
-      colorScheme: ColorScheme.fromSeed(
-        seedColor: primarySeedColor,
-        brightness: Brightness.dark,
-        primary: primarySeedColor,
-        secondary: const Color(0xFF66BB6A),
-        surface: const Color(0xFF1E1E1E),
-      ),
-      textTheme: appTextTheme,
-      scaffoldBackgroundColor: const Color(0xFF121212),
-      appBarTheme: AppBarTheme(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        centerTitle: true,
-        titleTextStyle: appTextTheme.headlineSmall,
-        iconTheme: IconThemeData(color: Colors.white.withAlpha(217)), // ~0.85 opacity
-      ),
-      elevatedButtonTheme: elevatedButtonTheme,
-      cardTheme: cardTheme,
-      dividerColor: Colors.white.withAlpha(26), // ~0.1 opacity
-    );
+  useMaterial3: true,
+  brightness: Brightness.dark,
+  colorScheme: ColorScheme.fromSeed(
+    seedColor: primarySeedColor,
+    brightness: Brightness.dark,
+    primary: const Color(0xFF66BB6A), // A slightly lighter green for primary elements
+    secondary: const Color(0xFF81C784), // A softer green for accents
+    surface: const Color(0xFF1E1E1E), // A very dark gray for surfaces
+    onSurface: Colors.white.withOpacity(0.9),
+    surfaceTint: const Color(0xFF2A2A2A), // A slightly lighter gray for cards and sheets
+  ),
+  textTheme: appTextTheme,
+  scaffoldBackgroundColor: const Color(0xFF121212), // The darkest background
+  appBarTheme: AppBarTheme(
+    backgroundColor: Colors.transparent,
+    elevation: 0,
+    centerTitle: true,
+    titleTextStyle: appTextTheme.headlineSmall,
+    iconTheme: IconThemeData(color: Colors.white.withOpacity(0.85)),
+  ),
+  elevatedButtonTheme: elevatedButtonTheme.copyWith(
+    style: ElevatedButton.styleFrom(
+      backgroundColor: const Color(0xFF66BB6A),
+      foregroundColor: Colors.black,
+      shadowColor: Colors.black.withOpacity(0.5),
+      elevation: 5,
+    ),
+  ),
+  cardTheme: CardThemeData(
+    elevation: 2,
+    color: const Color(0xFF2A2A2A), // Use the lighter surfaceTint color
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+    shadowColor: Colors.black.withOpacity(0.4),
+  ),
+  dividerColor: Colors.white.withOpacity(0.15),
+);
+
 
     return MaterialApp(
       onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
@@ -692,32 +707,72 @@ class _EmptyStateState extends State<EmptyState> with SingleTickerProviderStateM
   }
 
   @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+Widget build(BuildContext context) {
+  final theme = Theme.of(context);
 
-    return FadeTransition(
-      opacity: _fadeAnimation,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Spacer(flex: 2),
-            StatCard(
-              icon: Icons.cleaning_services_rounded,
-              iconColor: theme.colorScheme.secondary,
-              title: widget.totalSpaceSavedText,
-              value: widget.formattedSpaceSaved,
+  return FadeTransition(
+    opacity: _fadeAnimation,
+    child: Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24.0),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Spacer(flex: 2),
+          // A more engaging title
+          Text(
+            "Ready to Clean?", // This could be localized
+            style: theme.textTheme.displaySmall?.copyWith(
+              fontWeight: FontWeight.bold,
             ),
-            const SizedBox(height: 40),
-            if (widget.storageInfo != null)
-              StorageCircularIndicator(storageInfo: widget.storageInfo!)
-            else
-              CircularProgressIndicator(color: theme.colorScheme.primary),
-            const Spacer(flex: 3),
-          ],
-        ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            "Let's find some photos you can safely delete.", // This could also be localized
+            style: theme.textTheme.titleMedium?.copyWith(
+              color: theme.colorScheme.onSurface.withOpacity(0.7),
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const Spacer(flex: 1),
+
+          // The main stats cards in a more interesting layout
+          Row(
+            children: [
+              Expanded(
+                child: StatCard(
+                  icon: Icons.cleaning_services_rounded,
+                  iconColor: theme.colorScheme.secondary,
+                  title: widget.totalSpaceSavedText,
+                  value: widget.formattedSpaceSaved,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: StatCard(
+                  icon: Icons.storage_rounded,
+                  iconColor: theme.colorScheme.primary,
+                  title: "Storage Used", // Localize this
+                  value: widget.storageInfo != null
+                      ? '${(widget.storageInfo!.usedBytes / (1024 * 1024 * 1024)).toStringAsFixed(1)} GB'
+                      : "-- GB",
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 40),
+
+          // The circular progress indicator remains a central focus
+          if (widget.storageInfo != null)
+            StorageCircularIndicator(storageInfo: widget.storageInfo!)
+          else
+            CircularProgressIndicator(color: theme.colorScheme.primary),
+
+          const Spacer(flex: 3),
+        ],
       ),
-    );
-  }
+    ),
+  );
+}
+
 }
