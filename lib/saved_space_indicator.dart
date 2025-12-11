@@ -31,15 +31,15 @@ class StatCard extends StatelessWidget {
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: theme.dividerColor.withOpacity(0.2), width: 1.5),
+        border: Border.all(color: theme.dividerColor.withAlpha(51), width: 1.5),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withAlpha(26),
             blurRadius: 15,
             offset: const Offset(0, 5),
           ),
           BoxShadow(
-            color: iconColor.withOpacity(0.15), // Glow effect from the icon color
+            color: iconColor.withAlpha(38), // Glow effect from the icon color
             blurRadius: 20,
             spreadRadius: -5,
             offset: const Offset(0, 0),
@@ -53,11 +53,11 @@ class StatCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(12.0),
             decoration: BoxDecoration(
-              color: iconColor.withOpacity(0.1),
+              color: iconColor.withAlpha(26),
               shape: BoxShape.circle,
               boxShadow: [
                  BoxShadow(
-                    color: iconColor.withOpacity(0.2), // A stronger glow right behind the icon
+                    color: iconColor.withAlpha(51), // A stronger glow right behind the icon
                     blurRadius: 10,
                     spreadRadius: 2,
                   ),
@@ -70,7 +70,7 @@ class StatCard extends StatelessWidget {
             title.toUpperCase(),
             textAlign: TextAlign.center,
             style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurface.withOpacity(0.6),
+              color: theme.colorScheme.onSurface.withAlpha(153),
               fontWeight: FontWeight.bold,
               letterSpacing: 1.0,
             ),

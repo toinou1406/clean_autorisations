@@ -146,7 +146,7 @@ class _FullScreenImageViewState extends State<FullScreenImageView> {
             child: Container(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [Colors.black.withOpacity(0.6), Colors.transparent],
+                  colors: [Colors.black.withAlpha(153), Colors.transparent],
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                 ),
@@ -178,7 +178,7 @@ class _FullScreenImageViewState extends State<FullScreenImageView> {
               padding: const EdgeInsets.fromLTRB(24, 24, 24, 40),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [Colors.black.withOpacity(0.8), Colors.transparent],
+                  colors: [Colors.black.withAlpha(204), Colors.transparent],
                   begin: Alignment.bottomCenter,
                   end: Alignment.topCenter,
                 ),
@@ -214,7 +214,7 @@ class _FullScreenImageViewState extends State<FullScreenImageView> {
               )
             : const Icon(
                 Icons.radio_button_unchecked_rounded,
-                key: const ValueKey('not_kept_icon'),
+                key: ValueKey('not_kept_icon'),
               ),
       ),
       label: Text(
@@ -223,8 +223,8 @@ class _FullScreenImageViewState extends State<FullScreenImageView> {
       ),
       style: ElevatedButton.styleFrom(
         backgroundColor: isKept
-            ? theme.colorScheme.primary.withOpacity(0.15)
-            : theme.colorScheme.surface.withOpacity(0.8),
+            ? theme.colorScheme.primary.withAlpha(38)
+            : theme.colorScheme.surface.withAlpha(204),
         foregroundColor: isKept ? theme.colorScheme.primary : Colors.white,
         padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
         shape: const StadiumBorder(),
