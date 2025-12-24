@@ -37,5 +37,7 @@
     "totalSpaceSaved": "Espace total économisé",
     "readyToClean": "Prêt à nettoyer ?",
     "letsFindPhotos": "Trouvons des photos que vous pouvez supprimer en toute sécurité.",
-    "storageSpaceSaved": "Espace de stockage économisé"
+    "storageSpaceSaved": "Économisé",
+  "gridTutorialText": "Appuyez pour voir en grand. Appuyez longuement ou double-cliquez pour conserver.",
+  "gridTutorialDismiss": "Appuyez n'importe où pour continuer"
 }

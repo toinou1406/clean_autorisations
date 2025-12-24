@@ -17,12 +17,19 @@ class IsolateAnalysisResult {
     IsolateAnalysisResult(this.assetId, this.analysis);
 }
 
-/// Data structure to pass to the isolate.
+/// Data structure to pass to the analysis isolate.
 class IsolateData {
   final RootIsolateToken token;
   final String assetId;
   final bool isFromScreenshotAlbum;
   IsolateData(this.token, this.assetId, this.isFromScreenshotAlbum);
+}
+
+/// Data structure for passing data to the deletion isolate.
+class DeleteIsolateData {
+  final RootIsolateToken token;
+  final List<String> ids;
+  DeleteIsolateData(this.token, this.ids);
 }
 
 /// Top-level function executed in a separate isolate.
@@ -63,6 +70,20 @@ Future<dynamic> analyzePhotoInIsolate(IsolateData isolateData) async {
   }
 }
 
+/// Top-level function for deleting photos in an isolate to avoid UI jank.
+Future<List<String>> _deletePhotosInIsolate(DeleteIsolateData isolateData) async {
+  // Initialize platform channels for this isolate.
+  BackgroundIsolateBinaryMessenger.ensureInitialized(isolateData.token);
+  
+  if (isolateData.ids.isEmpty) return [];
+  try {
+    // Perform the deletion.
+    return await PhotoManager.editor.deleteWithIds(isolateData.ids);
+  } catch (e, s) {
+    developer.log('Failed to delete photos in isolate', name: 'photo_cleaner.isolate', error: e, stackTrace: s);
+    return []; // Return an empty list on failure.
+  }
+}
 
 //##############################################################################
 //# 2. MAIN SERVICE & DATA MODELS
@@ -217,9 +238,16 @@ class PhotoCleanerService {
 
   Future<List<String>> deletePhotos(List<PhotoResult> photos) async {
     if (photos.isEmpty) return [];
+    
+    final rootIsolateToken = RootIsolateToken.instance;
+    if (rootIsolateToken == null) {
+      developer.log("Could not get RootIsolateToken, deleting on main thread.", name: 'photo_cleaner.warning');
+      final ids = photos.map((p) => p.asset.id).toList();
+      return await PhotoManager.editor.deleteWithIds(ids);
+    }
+    
     final ids = photos.map((p) => p.asset.id).toList();
-    final List<String> deletedIds = await PhotoManager.editor.deleteWithIds(ids);
-    return deletedIds;
+    return await compute(_deletePhotosInIsolate, DeleteIsolateData(rootIsolateToken, ids));
   }
 
   Future<void> deleteAlbums(List<AssetPathEntity> albums) async {
@@ -232,6 +260,7 @@ class PhotoCleanerService {
     }
 
     if (allAssetIds.isNotEmpty) {
+      // Deleting albums can also be performance intensive. Consider using an isolate if needed.
       await PhotoManager.editor.deleteWithIds(allAssetIds);
     }
   }

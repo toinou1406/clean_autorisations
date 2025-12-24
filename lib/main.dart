@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:fastclean/aurora_circular_indicator.dart';
 
 import 'package:fastclean/sorting_indicator_bar.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -20,6 +21,31 @@ import 'permission_screen.dart';
 import 'language_settings_screen.dart';
 import 'photo_analyzer.dart';
 import 'photo_cleaner_service.dart';
+
+// Isolate Functions and Data Structures
+// Moved here to resolve build issues with function visibility across libraries.
+class GetSizesIsolateData {
+  final RootIsolateToken token;
+  final List<String> ids;
+  GetSizesIsolateData(this.token, this.ids);
+}
+
+Future<Map<String, int>> getPhotoSizesInIsolate(GetSizesIsolateData isolateData) async {
+  BackgroundIsolateBinaryMessenger.ensureInitialized(isolateData.token);
+  final Map<String, int> sizeMap = {};
+  for (final id in isolateData.ids) {
+    try {
+      final asset = await AssetEntity.fromId(id);
+      if (asset != null) {
+        final file = await asset.file;
+        sizeMap[id] = await file?.length() ?? 0;
+      }
+    } catch (e) {
+      developer.log('Failed to get size for asset $id', name: 'photo_cleaner.isolate', error: e);
+    }
+  }
+  return sizeMap;
+}
 
 
 void main() async {
@@ -225,7 +251,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   bool _hasScanned = false;
   String _sortingMessage = "";
   Timer? _messageTimer;
+  Timer? _notificationTimer;
   bool _isInitialized = false;
+  String? _topNotificationMessage;
+  bool _showGridTutorial = false;
 
   @override
   void initState() {
@@ -250,6 +279,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _messageTimer?.cancel();
+    _notificationTimer?.cancel();
     super.dispose();
   }
 
@@ -329,6 +359,16 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     if (mounted) setState(() => _storageInfo = info);
   }
 
+  Future<void> _checkAndShowGridTutorial() async {
+    final prefs = await SharedPreferences.getInstance();
+    final bool tutorialShown = prefs.getBool('grid_tutorial_shown') ?? false;
+    if (!tutorialShown && _selectedPhotos.isNotEmpty && mounted) {
+      setState(() {
+        _showGridTutorial = true;
+      });
+    }
+  }
+
   Future<void> _sortPhotos() async {
     final l10n = AppLocalizations.of(context);
 
@@ -364,29 +404,30 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       if (mounted) setState(() => _hasScanned = true);
 
       final photos = await _service.selectPhotosToDelete(excludedIds: _ignoredPhotos.toList());
-
-      if (photos.isEmpty && _hasScanned) {
-        _service.reset();
-        await _service.scanPhotosInBackground(permissionErrorMessage: l10n.photoAccessRequired);
-        final newPhotos = await _service.selectPhotosToDelete(excludedIds: _ignoredPhotos.toList());
-        if (mounted) {
-          if (newPhotos.isEmpty) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(l10n.noMorePhotos, style: TextStyle(color: Theme.of(context).colorScheme.onPrimary)),
-                backgroundColor: Theme.of(context).colorScheme.primary,
-                behavior: SnackBarBehavior.floating,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
+      
+      if (mounted) {
+        if (photos.isEmpty && _hasScanned) {
+          _service.reset();
+          final newPhotos = await _service.selectPhotosToDelete(excludedIds: _ignoredPhotos.toList());
+          if (mounted) {
+            if (newPhotos.isEmpty) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(l10n.noMorePhotos, style: TextStyle(color: Theme.of(context).colorScheme.onPrimary)),
+                  backgroundColor: Theme.of(context).colorScheme.primary,
+                  behavior: SnackBarBehavior.floating,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
                 ),
-              ),
-            );
+              );
+            }
+            setState(() => _selectedPhotos = newPhotos.take(15).toList());
+            _checkAndShowGridTutorial();
           }
-          setState(() => _selectedPhotos = newPhotos.take(15).toList());
-        }
-      } else {
-        if (mounted) {
+        } else {
           setState(() => _selectedPhotos = photos.take(15).toList());
+          _checkAndShowGridTutorial();
         }
       }
     } catch (e, s) {
@@ -419,25 +460,37 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
     try {
       final photosToDelete = _selectedPhotos.where((p) => !_ignoredPhotos.contains(p.asset.id)).toList();
-      final Map<String, int> sizeMap = {};
-      await Future.forEach(photosToDelete, (photo) async {
-        final file = await photo.asset.file;
-        sizeMap[photo.asset.id] = await file?.length() ?? 0;
-      });
+      
+      // Get photo sizes in an isolate to avoid UI jank
+      final idsToGetSize = photosToDelete.map((p) => p.asset.id).toList();
+      final rootToken = RootIsolateToken.instance;
+      final Map<String, int> sizeMap;
+      if (rootToken != null) {
+        sizeMap = await compute(getPhotoSizesInIsolate, GetSizesIsolateData(rootToken, idsToGetSize));
+      } else {
+        // Fallback for safety, though it should not happen in release builds.
+        developer.log("Could not get RootIsolateToken, getting sizes on main thread.", name: 'photo_cleaner.warning');
+        sizeMap = {};
+        await Future.forEach(photosToDelete, (photo) async {
+          final file = await photo.asset.file;
+          sizeMap[photo.asset.id] = await file?.length() ?? 0;
+        });
+      }
 
       final deletedIds = await _service.deletePhotos(photosToDelete);
-              if (deletedIds.isEmpty && photosToDelete.isNotEmpty && mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                  content: Text(l10n.couldNotDelete, style: TextStyle(color: Theme.of(context).colorScheme.onError)),
-                  backgroundColor: Theme.of(context).colorScheme.error,
-                  behavior: SnackBarBehavior.floating,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                ));
-                setState(() => _isDeleting = false);
-                return;
-              }
+      
+      if (deletedIds.isEmpty && photosToDelete.isNotEmpty && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(l10n.couldNotDelete, style: TextStyle(color: Theme.of(context).colorScheme.onError)),
+          backgroundColor: Theme.of(context).colorScheme.error,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+        ));
+        setState(() => _isDeleting = false);
+        return;
+      }
       int totalBytesDeleted = deletedIds.fold(0, (sum, id) => sum + (sizeMap[id] ?? 0));
 
       if (mounted) {
@@ -445,21 +498,17 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           _selectedPhotos = [];
           _ignoredPhotos.clear();
           _spaceSaved += totalBytesDeleted;
+          _topNotificationMessage = l10n.photosDeleted(deletedIds.length, _formatBytes(totalBytesDeleted.toDouble()));
         });
         _saveSavedSpace();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              l10n.photosDeleted(deletedIds.length, _formatBytes(totalBytesDeleted.toDouble())),
-              style: TextStyle(color: Theme.of(context).colorScheme.onPrimary),
-            ),
-            backgroundColor: Theme.of(context).colorScheme.primary,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
-          ),
-        );
+        _notificationTimer?.cancel();
+        _notificationTimer = Timer(const Duration(seconds: 4), () {
+          if (mounted) {
+            setState(() {
+              _topNotificationMessage = null;
+            });
+          }
+        });
       }
       await _loadStorageInfo();
     } catch (e, s) {
@@ -497,36 +546,132 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context);
 
-    if (!_isInitialized) {
-      return Scaffold(body: Center(child: CircularProgressIndicator(color: theme.colorScheme.primary)));
-    }
-
     return Scaffold(
-      appBar: AppBar(
-        title: Text(l10n.homeScreenTitle, key: const Key('homeScreenTitle')),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.settings_outlined),
-            onPressed: () => Navigator.pushNamed(context, AppRoutes.settings),
-            tooltip: l10n.settings,
+      body: Stack(
+        children: [
+          NoiseBox(
+            child: SafeArea(
+              bottom: false, // We only want safe area at the top for the main view
+              child: Column(
+                children: [
+                  // Banner Title
+                  if (_selectedPhotos.isEmpty)
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF2E3D32), // Dark Green-Gray
+                        borderRadius: BorderRadius.circular(24),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            l10n.homeScreenTitle,
+                            key: const Key('homeScreenTitle'),
+                            style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.settings_outlined),
+                            onPressed: () => Navigator.pushNamed(context, AppRoutes.settings),
+                            tooltip: l10n.settings,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    child: AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 500),
+                      transitionBuilder: (child, animation) {
+                        return ScaleTransition(
+                          scale: Tween<double>(begin: 0.95, end: 1.0).animate(
+                            CurvedAnimation(parent: animation, curve: Curves.easeOutCubic)
+                          ),
+                          child: FadeTransition(opacity: animation, child: child),
+                        );
+                      },
+                      child: _buildMainContent(),
+                    ),
+                  ),
+                  // Ensure bottom bar respects the bottom safe area
+                  SafeArea(
+                    top: false,
+                    child: _buildBottomBar(),
+                  ),
+                ],
+              ),
+            ),
           ),
-        ],
-      ),
-      body: NoiseBox(
-        child: SafeArea(
-          child: Column(
-            children: [
-              Expanded(
-                child: AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 600),
-                  transitionBuilder: (child, animation) => FadeTransition(opacity: animation, child: child),
-                  child: _buildMainContent(),
+          // --- Overlay Notification ---
+          Positioned(
+            top: MediaQuery.of(context).padding.top + 8,
+            left: 16,
+            right: 16,
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 350),
+              transitionBuilder: (child, animation) {
+                final offsetAnimation = Tween<Offset>(begin: const Offset(0.0, -0.2), end: Offset.zero)
+                    .animate(CurvedAnimation(parent: animation, curve: Curves.easeOut));
+                return SlideTransition(
+                  position: offsetAnimation,
+                  child: FadeTransition(opacity: animation, child: child),
+                );
+              },
+              child: _topNotificationMessage != null
+                  ? Material(
+                      key: const ValueKey('notification_bar'),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.0)),
+                      color: Colors.grey.shade800.withOpacity(0.98),
+                      elevation: 4.0,
+                      shadowColor: Colors.black.withOpacity(0.5),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+                        child: Text(
+                          _topNotificationMessage!,
+                          textAlign: TextAlign.center,
+                          style: theme.textTheme.titleMedium?.copyWith(color: Colors.white, fontWeight: FontWeight.w600),
+                        ),
+                      ),
+                    )
+                  : const SizedBox(key: ValueKey('no_notification')),
+            ),
+          ),
+           if (_showGridTutorial)
+            GestureDetector(
+              onTap: () async {
+                final prefs = await SharedPreferences.getInstance();
+                await prefs.setBool('grid_tutorial_shown', true);
+                setState(() => _showGridTutorial = false);
+              },
+              child: Container(
+                color: Colors.black.withOpacity(0.8),
+                child: Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(32.0),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.touch_app_outlined, color: Colors.white, size: 64),
+                        const SizedBox(height: 24),
+                        Text(
+                          l10n.gridTutorialText,
+                          textAlign: TextAlign.center,
+                          style: theme.textTheme.titleLarge?.copyWith(color: Colors.white),
+                        ),
+                        const SizedBox(height: 48),
+                        Text(
+                          l10n.gridTutorialDismiss,
+                          style: theme.textTheme.bodyMedium?.copyWith(color: Colors.white70),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               ),
-              _buildBottomBar(),
-            ],
-          ),
-        ),
+            ),
+        ],
       ),
     );
   }
@@ -535,7 +680,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     if (_selectedPhotos.isNotEmpty) {
       return GridView.builder(
         key: const ValueKey('grid'),
-        padding: const EdgeInsets.all(8),
+        padding: const EdgeInsets.fromLTRB(8, 16, 8, 8),
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 3, crossAxisSpacing: 8, mainAxisSpacing: 8),
         itemCount: _selectedPhotos.length,
         itemBuilder: (context, index) {
@@ -831,14 +976,6 @@ class _EmptyStateState extends State<EmptyState> with SingleTickerProviderStateM
             const Spacer(flex: 2),
             // A more engaging title
             Text(
-              l10n.readyToClean, // This could be localized
-              style: theme.textTheme.displaySmall?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 16),
-            Text(
               l10n.letsFindPhotos, // This could also be localized
               style: theme.textTheme.titleMedium?.copyWith(
                 color: theme.colorScheme.onSurface.withAlpha(179),
@@ -885,7 +1022,7 @@ class _EmptyStateState extends State<EmptyState> with SingleTickerProviderStateM
             if (widget.storageInfo != null)
               StorageCircularIndicator(storageInfo: widget.storageInfo!)
             else
-              CircularProgressIndicator(color: theme.colorScheme.primary),
+              const SizedBox.shrink(),
 
             const Spacer(flex: 3),
           ],

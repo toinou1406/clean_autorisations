@@ -132,5 +132,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get letsFindPhotos => 'Let\'s find some photos you can safely delete.';
 
   @override
-  String get storageSpaceSaved => 'Storage Space Saved';
+  String get storageSpaceSaved => 'Saved';
+
+  @override
+  String get gridTutorialText =>
+      'Tap to see a photo fullscreen. Long-press or double-tap to keep it.';
+
+  @override
+  String get gridTutorialDismiss => 'Tap anywhere to continue';
 }

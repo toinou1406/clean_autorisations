@@ -329,8 +329,20 @@ abstract class AppLocalizations {
   /// No description provided for @storageSpaceSaved.
   ///
   /// In en, this message translates to:
-  /// **'Storage Space Saved'**
+  /// **'Saved'**
   String get storageSpaceSaved;
+
+  /// Tutorial text shown on the photo grid
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to see a photo fullscreen. Long-press or double-tap to keep it.'**
+  String get gridTutorialText;
+
+  /// Dismiss message for the tutorial overlay
+  ///
+  /// In en, this message translates to:
+  /// **'Tap anywhere to continue'**
+  String get gridTutorialDismiss;
 }
 
 class _AppLocalizationsDelegate

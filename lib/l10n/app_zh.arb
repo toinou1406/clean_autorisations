@@ -78,5 +78,7 @@
     "spaceSavedThisMonth": "本月节省的空间",
     "readyToClean": "准备好清理了吗？",
     "letsFindPhotos": "让我们查找一些可以安全删除的照片。",
-    "storageSpaceSaved": "节省的存储空间"
+    "storageSpaceSaved": "已节省",
+  "gridTutorialText": "点击可全屏查看照片。长按或双击可保留照片。",
+  "gridTutorialDismiss": "Tap anywhere to continue"
 }

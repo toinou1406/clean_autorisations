@@ -43,7 +43,7 @@ class StorageCircularIndicator extends StatelessWidget {
         children: [
           Text(
             // Display percentage with the new font
-            "${(percentage * 100).toStringAsFixed(1)}%",
+            "${(percentage * 100).round()}%",
             style: theme.textTheme.displaySmall?.copyWith(
               fontWeight: FontWeight.bold,
               color: theme.colorScheme.primary,

@@ -18,35 +18,32 @@ class NoiseBox extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(borderRadius),
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          // Solid background color
-          Container(color: backgroundColor),
-          // The subtle noise texture, tiled across the widget
-          // This is a more modern and performant approach than a custom painter.
-          Opacity(
-            opacity: 0.05, // Keep it subtle
-            child: Image.asset(
-              'assets/images/noise.png', // Ensure this image is in your assets
-              repeat: ImageRepeat.repeat,
-              fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) {
-                // If the noise image fails, just show a transparent container.
-                return Container();
-              },
-            ),
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        // Solid background color
+        Container(color: backgroundColor),
+        // The subtle noise texture, tiled across the widget
+        // This is a more modern and performant approach than a custom painter.
+        Opacity(
+          opacity: 0.05, // Keep it subtle
+          child: Image.asset(
+            'assets/images/noise.png', // Ensure this image is in your assets
+            repeat: ImageRepeat.repeat,
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) {
+              // If the noise image fails, just show a transparent container.
+              return Container();
+            },
           ),
-          // The actual content
-          if (child != null)
-            Padding(
-              padding: padding ?? EdgeInsets.zero,
-              child: child,
-            ),
-        ],
-      ),
+        ),
+        // The actual content
+        if (child != null)
+          Padding(
+            padding: padding ?? EdgeInsets.zero,
+            child: child,
+          ),
+      ],
     );
   }
 }

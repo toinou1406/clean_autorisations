@@ -137,5 +137,12 @@ class AppLocalizationsEs extends AppLocalizations {
       'Busquemos algunas fotos que puedas eliminar de forma segura.';
 
   @override
-  String get storageSpaceSaved => 'Espacio de almacenamiento ahorrado';
+  String get storageSpaceSaved => 'Ahorrado';
+
+  @override
+  String get gridTutorialText =>
+      'Toca para ver en pantalla completa. Mantén presionado o toca dos veces para conservar.';
+
+  @override
+  String get gridTutorialDismiss => 'Tap anywhere to continue';
 }

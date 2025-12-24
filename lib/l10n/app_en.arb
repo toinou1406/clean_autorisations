@@ -87,5 +87,13 @@
     "totalSpaceSaved": "Total Space Saved",
     "readyToClean": "Ready to Clean?",
     "letsFindPhotos": "Let's find some photos you can safely delete.",
-    "storageSpaceSaved": "Storage Space Saved"
+    "storageSpaceSaved": "Saved",
+  "gridTutorialText": "Tap to see a photo fullscreen. Long-press or double-tap to keep it.",
+  "@gridTutorialText": {
+    "description": "Tutorial text shown on the photo grid"
+  },
+  "gridTutorialDismiss": "Tap anywhere to continue",
+  "@gridTutorialDismiss": {
+    "description": "Dismiss message for the tutorial overlay"
+  }
 }

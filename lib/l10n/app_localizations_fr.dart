@@ -138,5 +138,12 @@ class AppLocalizationsFr extends AppLocalizations {
       'Trouvons des photos que vous pouvez supprimer en toute sécurité.';
 
   @override
-  String get storageSpaceSaved => 'Espace de stockage économisé';
+  String get storageSpaceSaved => 'Économisé';
+
+  @override
+  String get gridTutorialText =>
+      'Appuyez pour voir en grand. Appuyez longuement ou double-cliquez pour conserver.';
+
+  @override
+  String get gridTutorialDismiss => 'Appuyez n\'importe où pour continuer';
 }

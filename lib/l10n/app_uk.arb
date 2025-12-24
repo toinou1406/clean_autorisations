@@ -37,5 +37,7 @@
     "totalSpaceSaved": "Загалом заощаджено місця",
     "readyToClean": "Готові до очищення?",
     "letsFindPhotos": "Давайте знайдемо фотографії, які можна безпечно видалити.",
-    "storageSpaceSaved": "Збережено місце в сховищі"
+    "storageSpaceSaved": "Зекономлено",
+  "gridTutorialText": "Торкніться, щоб переглянути на весь екран. Натисніть і утримуйте або двічі торкніться, щоб зберегти.",
+  "gridTutorialDismiss": "Tap anywhere to continue"
 }

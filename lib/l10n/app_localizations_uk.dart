@@ -135,5 +135,12 @@ class AppLocalizationsUk extends AppLocalizations {
       'Давайте знайдемо фотографії, які можна безпечно видалити.';
 
   @override
-  String get storageSpaceSaved => 'Збережено місце в сховищі';
+  String get storageSpaceSaved => 'Зекономлено';
+
+  @override
+  String get gridTutorialText =>
+      'Торкніться, щоб переглянути на весь екран. Натисніть і утримуйте або двічі торкніться, щоб зберегти.';
+
+  @override
+  String get gridTutorialDismiss => 'Tap anywhere to continue';
 }

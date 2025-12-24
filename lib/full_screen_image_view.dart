@@ -175,7 +175,7 @@ class _FullScreenImageViewState extends State<FullScreenImageView> {
             left: 0,
             right: 0,
             child: Container(
-              padding: const EdgeInsets.fromLTRB(24, 24, 24, 40),
+              padding: const EdgeInsets.fromLTRB(24, 24, 24, 80),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [Colors.black.withAlpha(204), Colors.transparent],

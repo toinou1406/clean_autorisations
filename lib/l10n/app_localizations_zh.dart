@@ -130,5 +130,11 @@ class AppLocalizationsZh extends AppLocalizations {
   String get letsFindPhotos => '让我们查找一些可以安全删除的照片。';
 
   @override
-  String get storageSpaceSaved => '节省的存储空间';
+  String get storageSpaceSaved => '已节省';
+
+  @override
+  String get gridTutorialText => '点击可全屏查看照片。长按或双击可保留照片。';
+
+  @override
+  String get gridTutorialDismiss => 'Tap anywhere to continue';
 }
