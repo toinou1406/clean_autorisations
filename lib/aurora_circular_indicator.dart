@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
-import 'package:fastclean/photo_cleaner_service.dart';
-import 'package:fastclean/l10n/app_localizations.dart';
+import 'package:clean/photo_cleaner_service.dart';
+import 'package:clean/l10n/app_localizations.dart';
 
 /// A circular indicator to display device storage usage, redesigned to match the new UI.
 class StorageCircularIndicator extends StatelessWidget {

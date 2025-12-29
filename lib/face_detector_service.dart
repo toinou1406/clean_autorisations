@@ -1,5 +1,6 @@
 
 import 'dart:async';
+import 'dart:developer' as developer;
 import 'dart:io';
 
 import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
@@ -30,7 +31,7 @@ class FaceDetectorService {
       return faces.isNotEmpty;
     } catch (e) {
       // Log the error appropriately
-      print('Error detecting faces: $e');
+      developer.log('Error detecting faces', name: 'face_detector.error', error: e);
       return false; // Assume no faces if an error occurs
     }
   }

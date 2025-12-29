@@ -1,3 +1,5 @@
+import 'dart:developer' as developer;
+import 'dart:ui';
 import 'package:flutter/foundation.dart';
 import 'dart:math' as math;
 
@@ -72,8 +74,10 @@ class PhotoAnalysisResult {
       score += 300;
     }
     if (kDebugMode) {
-      print(
-          "Photo [${md5Hash.substring(0, 6)}...]: Final Score = $score (Blur: $blurScore, Lum: $luminanceScore, Entropy: $entropyScore, Edges: $edgeDensityScore, isSS: $isFromScreenshotAlbum, Faces: $faceCount)");
+      developer.log(
+          "Photo [${md5Hash.substring(0, 6)}...]: Final Score = $score (Blur: $blurScore, Lum: $luminanceScore, Entropy: $entropyScore, Edges: $edgeDensityScore, isSS: $isFromScreenshotAlbum, Faces: $faceCount)",
+          name: 'photo_analyzer.score',
+        );
     }
     return score;
   }
@@ -190,7 +194,7 @@ class PhotoAnalyzer {
       return faces.length;
     } catch (e) {
       // Handle any errors during face detection, e.g., from an invalid image format.
-      print("Error during face detection: $e");
+      developer.log('Error during face detection', name: 'photo_analyzer.error', error: e);
       return 0;
     }
   }
@@ -200,7 +204,7 @@ class PhotoAnalyzer {
       {bool isFromScreenshotAlbum = false}) async {
     if (kDebugMode) {
       final hash = md5.convert(imageBytes).toString().substring(0, 6);
-      print("ANALYZE START for photo [$hash]...");
+      developer.log("ANALYZE START for photo [$hash]...", name: 'photo_analyzer.life_cycle');
     }
     final originalImage = img.decodeImage(imageBytes);
     if (originalImage == null) {

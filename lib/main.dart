@@ -1,9 +1,9 @@
 import 'dart:async';
 import 'dart:developer' as developer;
 import 'dart:math';
-import 'package:fastclean/aurora_circular_indicator.dart';
+import 'package:clean/aurora_circular_indicator.dart';
 
-import 'package:fastclean/sorting_indicator_bar.dart';
+import 'package:clean/sorting_indicator_bar.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -303,11 +303,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   Future<void> _saveIgnoredIds() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setStringList('permanently_ignored_ids', _permanentlyIgnoredIds.toList());
-  }
-
-  Future<void> _saveState() async {
-    // This method is now only a proxy to _saveIgnoredIds, but could be expanded later.
-    await _saveIgnoredIds();
   }
 
   Future<void> _restoreState() async {
@@ -693,9 +688,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                   ? Material(
                       key: const ValueKey('notification_bar'),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.0)),
-                      color: Colors.grey.shade800.withOpacity(0.98),
+                      color: Colors.grey.shade800.withAlpha(250),
                       elevation: 4.0,
-                      shadowColor: Colors.black.withOpacity(0.5),
+                      shadowColor: Colors.black.withAlpha(128),
                       child: Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
                         child: Text(
@@ -716,7 +711,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 setState(() => _showGridTutorial = false);
               },
               child: Container(
-                color: Colors.black.withOpacity(0.8),
+                color: Colors.black.withAlpha(204),
                 child: Stack(
                   children: [
                     Center(

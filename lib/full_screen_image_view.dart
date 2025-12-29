@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:photo_view/photo_view_gallery.dart';
-import 'package:fastclean/photo_cleaner_service.dart';
-import 'package:fastclean/l10n/app_localizations.dart';
+import 'package:clean/photo_cleaner_service.dart';
+import 'package:clean/l10n/app_localizations.dart';
 import 'package:flutter/services.dart';
 import 'package:photo_manager_image_provider/photo_manager_image_provider.dart';
 

@@ -131,7 +131,7 @@ class PhotoCleanerService {
     if (albums.isEmpty) return;
 
     final AssetPathEntity mainAlbum = albums.first;
-    final int totalPhotos = mainAlbum.assetCount;
+    final int totalPhotos = await mainAlbum.assetCountAsync;
     const int photosToFetch = 300;
     final List<AssetEntity> recentAssets = await mainAlbum.getAssetListRange(
       start: 0,

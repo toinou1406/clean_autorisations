@@ -3,8 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:photo_manager/photo_manager.dart';
-import 'package:fastclean/l10n/app_localizations.dart';
-import 'package:fastclean/aurora_widgets.dart'; // For PulsingIcon
+import 'package:clean/l10n/app_localizations.dart';
+import 'package:clean/aurora_widgets.dart'; // For PulsingIcon
 
 class PermissionScreen extends StatefulWidget {
   final VoidCallback onPermissionGranted;
@@ -27,6 +27,7 @@ class _PermissionScreenState extends State<PermissionScreen>
 
   bool _showWarning = false;
   bool _isRequesting = false;
+  bool _isGranted = false;
 
   @override
   void initState() {
@@ -103,6 +104,9 @@ class _PermissionScreenState extends State<PermissionScreen>
 
 
   void _grantAccess() async {
+    if (_isGranted) return;
+    _isGranted = true;
+
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('permission_granted', true);
     if (mounted) {
@@ -161,8 +165,7 @@ class _PermissionScreenState extends State<PermissionScreen>
                     l10n.permissionDescription,
                     textAlign: TextAlign.center,
                     style: theme.textTheme.bodyLarge?.copyWith(
-                      color:
-                          theme.colorScheme.onSurface.withAlpha(179), // ~0.7 opacity
+                      color: theme.colorScheme.primary, // ~0.7 opacity
                       height: 1.6,
                     ),
                   ),

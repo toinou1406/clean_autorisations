@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:fastclean/l10n/app_localizations.dart';
+import 'package:clean/l10n/app_localizations.dart';
 
 class LanguageSettingsScreen extends StatefulWidget {
   final void Function(Locale) onLocaleChanged;

@@ -13,13 +13,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get permissionScreenBody =>
-      'SimpleClean analyzes your photos directly on your device. Nothing is ever uploaded to a server.';
+      'Clean analyzes your photos directly on your device. Nothing is ever uploaded to a server.';
 
   @override
   String get grantAccessContinue => 'Grant Access & Continue';
 
   @override
-  String get homeScreenTitle => 'SimpleClean';
+  String get homeScreenTitle => 'Clean';
 
   @override
   String get sortingMessageAnalyzing => 'Analyzing photo metadata...';
@@ -107,7 +107,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get spaceSavedThisMonth => 'Space Saved (This Month)';
 
   @override
-  String get appTitle => 'SimpleClean';
+  String get appTitle => 'Clean';
 
   @override
   String get chooseYourLanguage => 'Choose your language';
@@ -117,7 +117,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get permissionDescription =>
-      'SimpleClean needs full access to your photos to work properly. Please choose \'Allow access to all photos\' when prompted.';
+      'Clean needs full access to your photos to work properly. Please choose \'Allow access to all photos\' when prompted.';
 
   @override
   String get grantPermission => 'Grant Permission';
