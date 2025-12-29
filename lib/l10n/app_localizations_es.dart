@@ -135,7 +135,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get permissionWarning =>
-      'Debe seleccionar \"Permitir acceso a todas las fotos\" para usar la aplicación.';
+      'No se concedió acceso a las fotos. Por favor, concede acceso total a las fotos para continuar. Si denegaste el permiso anteriormente, es posible que debas habilitarlo en la configuración de tu dispositivo.';
 
   @override
   String get cancel => 'Cancelar';

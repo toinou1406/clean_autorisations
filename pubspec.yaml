@@ -27,6 +27,7 @@ dependencies:
   flutter_staggered_animations: ^1.1.1
   percent_indicator: ^4.2.5
   provider: ^6.1.2
+  permission_handler: ^12.0.1
 
 dev_dependencies:
   flutter_test:

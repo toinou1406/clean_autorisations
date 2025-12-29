@@ -17,7 +17,7 @@ import 'l10n/app_localizations.dart';
 import 'aurora_widgets.dart';
 
 import 'full_screen_image_view.dart';
-import 'permission_screen.dart';
+import 'permission_wrapper.dart'; // Import the new wrapper
 import 'language_settings_screen.dart';
 import 'photo_cleaner_service.dart';
 
@@ -29,7 +29,8 @@ class GetSizesIsolateData {
   GetSizesIsolateData(this.token, this.ids);
 }
 
-Future<Map<String, int>> getPhotoSizesInIsolate(GetSizesIsolateData isolateData) async {
+Future<Map<String, int>> getPhotoSizesInIsolate(
+    GetSizesIsolateData isolateData) async {
   BackgroundIsolateBinaryMessenger.ensureInitialized(isolateData.token);
   final Map<String, int> sizeMap = {};
   for (final id in isolateData.ids) {
@@ -40,41 +41,25 @@ Future<Map<String, int>> getPhotoSizesInIsolate(GetSizesIsolateData isolateData)
         sizeMap[id] = await file?.length() ?? 0;
       }
     } catch (e) {
-      developer.log('Failed to get size for asset $id', name: 'photo_cleaner.isolate', error: e);
+      developer.log('Failed to get size for asset $id',
+          name: 'photo_cleaner.isolate', error: e);
     }
   }
   return sizeMap;
 }
 
-
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final prefs = await SharedPreferences.getInstance();
-  final bool permissionGranted = prefs.getBool('permission_granted') ?? false;
   final String? languageCode = prefs.getString('language_code');
 
-  // Start scanning photos in the background if permission is granted
-  if (permissionGranted) {
-    // We don't have a context here, so we use a default error message.
-    // This can be improved by passing the message from the UI layer later.
-    PhotoCleanerService.instance.scanPhotosInBackground(permissionErrorMessage: "Photo access permission is required.");
-  }
-
   runApp(MyApp(
-    initialRoute: permissionGranted ? AppRoutes.home : AppRoutes.permission,
     locale: languageCode != null ? Locale(languageCode) : null,
   ));
 }
 
-class AppRoutes {
-  static const String home = '/';
-  static const String permission = '/permission';
-  static const String settings = '/settings';
-}
-
 class MyApp extends StatefulWidget {
-  const MyApp({super.key, required this.initialRoute, this.locale});
-  final String initialRoute;
+  const MyApp({super.key, this.locale});
   final Locale? locale;
 
   @override
@@ -108,15 +93,45 @@ class _MyAppState extends State<MyApp> {
     final TextTheme appTextTheme = GoogleFonts.nunitoTextTheme(
       ThemeData.dark().textTheme,
     ).copyWith(
-      displayLarge: GoogleFonts.nunito(fontSize: 52, fontWeight: FontWeight.w900, color: Colors.white, height: 1.2),
-      displayMedium: GoogleFonts.nunito(fontSize: 42, fontWeight: FontWeight.w800, color: Colors.white, height: 1.2),
-      displaySmall: GoogleFonts.nunito(fontSize: 32, fontWeight: FontWeight.w800, color: Colors.white, height: 1.2),
-      headlineMedium: GoogleFonts.nunito(fontSize: 26, fontWeight: FontWeight.w700, color: Colors.white.withAlpha(242)), // ~0.95 opacity
-      headlineSmall: GoogleFonts.nunito(fontSize: 22, fontWeight: FontWeight.w700, color: Colors.white.withAlpha(229)), // ~0.9 opacity
-      titleLarge: GoogleFonts.nunito(fontSize: 20, fontWeight: FontWeight.w600, color: Colors.white.withAlpha(217)), // ~0.85 opacity
-      titleMedium: GoogleFonts.nunito(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white.withAlpha(204)), // ~0.8 opacity
-      bodyLarge: GoogleFonts.nunito(fontSize: 16, color: Colors.white.withAlpha(191), height: 1.5), // ~0.75 opacity
-      bodyMedium: GoogleFonts.nunito(fontSize: 14, color: Colors.white.withAlpha(179), height: 1.5), // ~0.7 opacity
+      displayLarge: GoogleFonts.nunito(
+          fontSize: 52,
+          fontWeight: FontWeight.w900,
+          color: Colors.white,
+          height: 1.2),
+      displayMedium: GoogleFonts.nunito(
+          fontSize: 42,
+          fontWeight: FontWeight.w800,
+          color: Colors.white,
+          height: 1.2),
+      displaySmall: GoogleFonts.nunito(
+          fontSize: 32,
+          fontWeight: FontWeight.w800,
+          color: Colors.white,
+          height: 1.2),
+      headlineMedium: GoogleFonts.nunito(
+          fontSize: 26,
+          fontWeight: FontWeight.w700,
+          color: Colors.white.withAlpha(242)), // ~0.95 opacity
+      headlineSmall: GoogleFonts.nunito(
+          fontSize: 22,
+          fontWeight: FontWeight.w700,
+          color: Colors.white.withAlpha(229)), // ~0.9 opacity
+      titleLarge: GoogleFonts.nunito(
+          fontSize: 20,
+          fontWeight: FontWeight.w600,
+          color: Colors.white.withAlpha(217)), // ~0.85 opacity
+      titleMedium: GoogleFonts.nunito(
+          fontSize: 16,
+          fontWeight: FontWeight.w600,
+          color: Colors.white.withAlpha(204)), // ~0.8 opacity
+      bodyLarge: GoogleFonts.nunito(
+          fontSize: 16,
+          color: Colors.white.withAlpha(191),
+          height: 1.5), // ~0.75 opacity
+      bodyMedium: GoogleFonts.nunito(
+          fontSize: 14,
+          color: Colors.white.withAlpha(179),
+          height: 1.5), // ~0.7 opacity
       labelLarge: GoogleFonts.nunito(fontSize: 16, fontWeight: FontWeight.bold),
     );
 
@@ -148,7 +163,9 @@ class _MyAppState extends State<MyApp> {
         secondary: const Color(0xFF4CAF50),
         surface: const Color(0xFFF5F5F5),
       ),
-      textTheme: appTextTheme.apply(bodyColor: const Color(0xFF121212), displayColor: const Color(0xFF121212)),
+      textTheme: appTextTheme.apply(
+          bodyColor: const Color(0xFF121212),
+          displayColor: const Color(0xFF121212)),
       scaffoldBackgroundColor: const Color(0xFFF9F9F9),
       appBarTheme: AppBarTheme(
         backgroundColor: Colors.transparent,
@@ -200,39 +217,28 @@ class _MyAppState extends State<MyApp> {
       dividerColor: Colors.white.withAlpha(38),
     );
 
-
     return MaterialApp(
-        onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
-        theme: lightTheme,
-        darkTheme: darkTheme,
-        themeMode: ThemeMode.dark,
-        locale: _locale,
-        debugShowCheckedModeBanner: false,
-        initialRoute: widget.initialRoute,
-        routes: {
-          AppRoutes.home: (context) => const HomeScreen(),
-          AppRoutes.permission: (context) => PermissionScreen(
-            onPermissionGranted: () {
-              PhotoCleanerService.instance.scanPhotosInBackground(permissionErrorMessage: AppLocalizations.of(context).photoAccessRequired);
-              Navigator.pushReplacementNamed(context, AppRoutes.home);
-            },
-            onLocaleChanged: _changeLocale,
-          ),
-          AppRoutes.settings: (context) => LanguageSettingsScreen(onLocaleChanged: _changeLocale),
-        },
-        localizationsDelegates: const [
-          AppLocalizations.delegate,
-          GlobalMaterialLocalizations.delegate,
-          GlobalWidgetsLocalizations.delegate,
-          GlobalCupertinoLocalizations.delegate,
-        ],
-        supportedLocales: AppLocalizations.supportedLocales,
+      onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
+      theme: lightTheme,
+      darkTheme: darkTheme,
+      themeMode: ThemeMode.dark,
+      locale: _locale,
+      debugShowCheckedModeBanner: false,
+      home: PermissionWrapper(onLocaleChanged: _changeLocale), // Use the wrapper as the home.
+      localizationsDelegates: const [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: AppLocalizations.supportedLocales,
     );
   }
 }
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  final void Function(Locale) onLocaleChanged;
+  const HomeScreen({super.key, required this.onLocaleChanged});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -268,20 +274,20 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     await _loadSavedSpace();
     await _restoreState();
     if (mounted) {
-      // Start fetching the initial batch of photos as soon as the app is initialized.
-      setState(() {
-        _currentBatchFuture = _prepareNextBatch();
+      Future.delayed(const Duration(seconds: 1), () {
+        if (mounted) {
+          _showInitialBatch();
+        }
       });
     }
   }
 
   Future<List<PhotoResult>> _prepareNextBatch() async {
     _service.reset();
-    // We use a default permission error message here because we don't have build context
-    // and this runs in the background. A more robust solution might involve passing
-    // the localized string from a higher level.
-    await _service.scanPhotosInBackground(permissionErrorMessage: "Photo access permission is required.");
-    final photos = await _service.selectPhotosToDelete(excludedIds: _permanentlyIgnoredIds.toList());
+    await _service.scanPhotosInBackground(
+        permissionErrorMessage: "Photo access permission is required.");
+    final photos = await _service
+        .selectPhotosToDelete(excludedIds: _permanentlyIgnoredIds.toList());
     return photos.take(15).toList();
   }
 
@@ -302,7 +308,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
   Future<void> _saveIgnoredIds() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setStringList('permanently_ignored_ids', _permanentlyIgnoredIds.toList());
+    await prefs.setStringList(
+        'permanently_ignored_ids', _permanentlyIgnoredIds.toList());
   }
 
   Future<void> _restoreState() async {
@@ -360,8 +367,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   Future<void> _showInitialBatch() async {
     final l10n = AppLocalizations.of(context);
     if (_currentBatchFuture == null) {
-      // This can happen if the initial prefetch fails.
-      // We can trigger it again.
       setState(() {
         _currentBatchFuture = _prepareNextBatch();
       });
@@ -391,7 +396,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         timer.cancel();
         return;
       }
-      setState(() => _sortingMessage = sortingMessages[++msgIndex % sortingMessages.length]);
+      setState(
+          () => _sortingMessage = sortingMessages[++msgIndex % sortingMessages.length]);
     });
 
     try {
@@ -401,15 +407,16 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           _selectedPhotos = photos;
         });
         _checkAndShowGridTutorial();
-        // Start fetching the next batch now that the first is displayed.
         _nextBatchFuture = _prepareNextBatch();
       }
     } catch (e, s) {
-      developer.log('Error during initial photo sort', name: 'photo_cleaner.error', error: e, stackTrace: s);
+      developer.log('Error during initial photo sort',
+          name: 'photo_cleaner.error', error: e, stackTrace: s);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(l10n.errorOccurred(e.toString()), style: TextStyle(color: Theme.of(context).colorScheme.onError)),
+            content: Text(l10n.errorOccurred(e.toString()),
+                style: TextStyle(color: Theme.of(context).colorScheme.onError)),
             backgroundColor: Theme.of(context).colorScheme.error,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
@@ -427,8 +434,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   Future<void> _showNextBatch() async {
     final l10n = AppLocalizations.of(context);
     if (_nextBatchFuture == null) {
-      // If there is no next batch, it might be because the user cleared everything
-      // or the prefetch failed. Let's try to prepare a new one.
       setState(() {
         _isLoading = true;
         _selectedPhotos = [];
@@ -443,50 +448,48 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       });
     }
 
-
     try {
-        final photos = await _nextBatchFuture!;
+      final photos = await _nextBatchFuture!;
 
-        if (mounted) {
-          // The next batch becomes the current one.
-          _currentBatchFuture = _nextBatchFuture;
-          // Immediately prefetch the one after.
-          _nextBatchFuture = _prepareNextBatch();
+      if (mounted) {
+        _currentBatchFuture = _nextBatchFuture;
+        _nextBatchFuture = _prepareNextBatch();
 
-          setState(() {
-            _selectedPhotos = photos;
-            // _permanentlyIgnoredIds is persistent and should not be cleared.
-          });
+        setState(() {
+          _selectedPhotos = photos;
+        });
 
-          if (photos.isEmpty) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(l10n.noMorePhotos, style: TextStyle(color: Theme.of(context).colorScheme.onPrimary)),
-                backgroundColor: Theme.of(context).colorScheme.primary,
-                behavior: SnackBarBehavior.floating,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                ),
+        if (photos.isEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(l10n.noMorePhotos,
+                  style:
+                      TextStyle(color: Theme.of(context).colorScheme.onPrimary)),
+              backgroundColor: Theme.of(context).colorScheme.primary,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
               ),
-            );
-          }
+            ),
+          );
         }
+      }
     } catch (e, s) {
-      developer.log('Error showing next batch', name: 'photo_cleaner.error', error: e, stackTrace: s);
+      developer.log('Error showing next batch',
+          name: 'photo_cleaner.error', error: e, stackTrace: s);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(l10n.errorOccurred(e.toString()), style: TextStyle(color: Theme.of(context).colorScheme.onError)),
+            content: Text(l10n.errorOccurred(e.toString()),
+                style: TextStyle(color: Theme.of(context).colorScheme.onError)),
             backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
       }
     } finally {
-        if (mounted) setState(() => _isLoading = false);
+      if (mounted) setState(() => _isLoading = false);
     }
   }
-
-
 
   Future<void> _deletePhotos() async {
     HapticFeedback.heavyImpact();
@@ -495,17 +498,19 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     final l10n = AppLocalizations.of(context);
 
     try {
-      final photosToDelete = _selectedPhotos.where((p) => !_permanentlyIgnoredIds.contains(p.asset.id)).toList();
-      
-      // Get photo sizes in an isolate to avoid UI jank
+      final photosToDelete = _selectedPhotos
+          .where((p) => !_permanentlyIgnoredIds.contains(p.asset.id))
+          .toList();
+
       final idsToGetSize = photosToDelete.map((p) => p.asset.id).toList();
       final rootToken = RootIsolateToken.instance;
       final Map<String, int> sizeMap;
       if (rootToken != null) {
-        sizeMap = await compute(getPhotoSizesInIsolate, GetSizesIsolateData(rootToken, idsToGetSize));
+        sizeMap = await compute(
+            getPhotoSizesInIsolate, GetSizesIsolateData(rootToken, idsToGetSize));
       } else {
-        // Fallback for safety, though it should not happen in release builds.
-        developer.log("Could not get RootIsolateToken, getting sizes on main thread.", name: 'photo_cleaner.warning');
+        developer.log("Could not get RootIsolateToken, getting sizes on main thread.",
+            name: 'photo_cleaner.warning');
         sizeMap = {};
         await Future.forEach(photosToDelete, (photo) async {
           final file = await photo.asset.file;
@@ -514,10 +519,11 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       }
 
       final deletedIds = await _service.deletePhotos(photosToDelete);
-      
+
       if (deletedIds.isEmpty && photosToDelete.isNotEmpty && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text(l10n.couldNotDelete, style: TextStyle(color: Theme.of(context).colorScheme.onError)),
+          content: Text(l10n.couldNotDelete,
+              style: TextStyle(color: Theme.of(context).colorScheme.onError)),
           backgroundColor: Theme.of(context).colorScheme.error,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
@@ -527,15 +533,16 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         setState(() => _isDeleting = false);
         return;
       }
-      int totalBytesDeleted = deletedIds.fold(0, (sum, id) => sum + (sizeMap[id] ?? 0));
+      int totalBytesDeleted =
+          deletedIds.fold(0, (sum, id) => sum + (sizeMap[id] ?? 0));
 
       if (mounted) {
         setState(() {
           _selectedPhotos = [];
           _spaceSaved += totalBytesDeleted;
-          _topNotificationMessage = l10n.photosDeleted(deletedIds.length, _formatBytes(totalBytesDeleted.toDouble()));
-          
-          // Advance the batch queue.
+          _topNotificationMessage = l10n.photosDeleted(
+              deletedIds.length, _formatBytes(totalBytesDeleted.toDouble()));
+
           _currentBatchFuture = _nextBatchFuture;
           _nextBatchFuture = _prepareNextBatch();
         });
@@ -551,11 +558,13 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       }
       await _loadStorageInfo();
     } catch (e, s) {
-      developer.log('Error deleting photos', name: 'photo_cleaner.error', error: e, stackTrace: s);
+      developer.log('Error deleting photos',
+          name: 'photo_cleaner.error', error: e, stackTrace: s);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(l10n.errorDeleting(e.toString()), style: TextStyle(color: Theme.of(context).colorScheme.onError)),
+            content: Text(l10n.errorDeleting(e.toString()),
+                style: TextStyle(color: Theme.of(context).colorScheme.onError)),
             backgroundColor: Theme.of(context).colorScheme.error,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
@@ -578,7 +587,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         _permanentlyIgnoredIds.add(id);
       }
     });
-    // Persist the change immediately.
     _saveIgnoredIds();
   }
 
@@ -592,15 +600,15 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         children: [
           NoiseBox(
             child: SafeArea(
-              bottom: false, // We only want safe area at the top for the main view
+              bottom: false,
               child: Column(
                 children: [
-                  // Banner Title for Empty State
                   if (_selectedPhotos.isEmpty)
                     Padding(
                       padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 8),
                         decoration: BoxDecoration(
                           color: const Color(0xFF2E3D32), // Dark Green-Gray
                           borderRadius: BorderRadius.circular(24),
@@ -611,18 +619,18 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                             Text(
                               l10n.homeScreenTitle,
                               key: const Key('homeScreenTitle'),
-                              style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+                              style: theme.textTheme.headlineSmall
+                                  ?.copyWith(fontWeight: FontWeight.bold),
                             ),
                             IconButton(
                               icon: const Icon(Icons.settings_outlined),
-                              onPressed: () => Navigator.pushNamed(context, AppRoutes.settings),
+                              onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => LanguageSettingsScreen(onLocaleChanged: widget.onLocaleChanged))),
                               tooltip: l10n.settings,
                             ),
                           ],
                         ),
                       ),
                     ),
-                  // Header for Grid View
                   if (_selectedPhotos.isNotEmpty)
                     Padding(
                       padding: const EdgeInsets.fromLTRB(8, 8, 16, 4),
@@ -636,11 +644,12 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                           ),
                           Text(
                             'Review Photos',
-                            style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+                            style: theme.textTheme.headlineSmall
+                                ?.copyWith(fontWeight: FontWeight.bold),
                           ),
                           IconButton(
                             icon: const Icon(Icons.settings_outlined),
-                            onPressed: () => Navigator.pushNamed(context, AppRoutes.settings),
+                            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => LanguageSettingsScreen(onLocaleChanged: widget.onLocaleChanged))),
                             tooltip: l10n.settings,
                           ),
                         ],
@@ -652,15 +661,15 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                       transitionBuilder: (child, animation) {
                         return ScaleTransition(
                           scale: Tween<double>(begin: 0.95, end: 1.0).animate(
-                            CurvedAnimation(parent: animation, curve: Curves.easeOutCubic)
-                          ),
+                              CurvedAnimation(
+                                  parent: animation,
+                                  curve: Curves.easeOutCubic)),
                           child: FadeTransition(opacity: animation, child: child),
                         );
                       },
                       child: _buildMainContent(),
                     ),
                   ),
-                  // Ensure bottom bar respects the bottom safe area
                   SafeArea(
                     top: false,
                     child: _buildBottomBar(),
@@ -669,7 +678,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
               ),
             ),
           ),
-          // --- Overlay Notification ---
           Positioned(
             top: MediaQuery.of(context).padding.top + 8,
             left: 16,
@@ -677,8 +685,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             child: AnimatedSwitcher(
               duration: const Duration(milliseconds: 350),
               transitionBuilder: (child, animation) {
-                final offsetAnimation = Tween<Offset>(begin: const Offset(0.0, -0.2), end: Offset.zero)
-                    .animate(CurvedAnimation(parent: animation, curve: Curves.easeOut));
+                final offsetAnimation = Tween<Offset>(
+                        begin: const Offset(0.0, -0.2), end: Offset.zero)
+                    .animate(CurvedAnimation(
+                        parent: animation, curve: Curves.easeOut));
                 return SlideTransition(
                   position: offsetAnimation,
                   child: FadeTransition(opacity: animation, child: child),
@@ -687,23 +697,26 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
               child: _topNotificationMessage != null
                   ? Material(
                       key: const ValueKey('notification_bar'),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.0)),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16.0)),
                       color: Colors.grey.shade800.withAlpha(250),
                       elevation: 4.0,
                       shadowColor: Colors.black.withAlpha(128),
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 24.0, vertical: 16.0),
                         child: Text(
                           _topNotificationMessage!,
                           textAlign: TextAlign.center,
-                          style: theme.textTheme.titleMedium?.copyWith(color: Colors.white, fontWeight: FontWeight.w600),
+                          style: theme.textTheme.titleMedium
+                              ?.copyWith(color: Colors.white, fontWeight: FontWeight.w600),
                         ),
                       ),
                     )
                   : const SizedBox(key: ValueKey('no_notification')),
             ),
           ),
-           if (_showGridTutorial)
+          if (_showGridTutorial)
             GestureDetector(
               onTap: () async {
                 final prefs = await SharedPreferences.getInstance();
@@ -720,17 +733,20 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Icon(Icons.touch_app_outlined, color: Colors.white, size: 64),
+                            const Icon(Icons.touch_app_outlined,
+                                color: Colors.white, size: 64),
                             const SizedBox(height: 24),
                             Text(
                               l10n.gridTutorialText,
                               textAlign: TextAlign.center,
-                              style: theme.textTheme.titleLarge?.copyWith(color: Colors.white),
+                              style: theme.textTheme.titleLarge
+                                  ?.copyWith(color: Colors.white),
                             ),
                             const SizedBox(height: 48),
                             Text(
                               l10n.gridTutorialDismiss,
-                              style: theme.textTheme.bodyMedium?.copyWith(color: Colors.white70),
+                              style: theme.textTheme.bodyMedium
+                                  ?.copyWith(color: Colors.white70),
                             ),
                           ],
                         ),
@@ -740,7 +756,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                       top: 40,
                       right: 20,
                       child: IconButton(
-                        icon: const Icon(Icons.close, color: Colors.white, size: 32),
+                        icon: const Icon(Icons.close,
+                            color: Colors.white, size: 32),
                         onPressed: () async {
                           final prefs = await SharedPreferences.getInstance();
                           await prefs.setBool('grid_tutorial_shown', true);
@@ -762,7 +779,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       return GridView.builder(
         key: const ValueKey('grid'),
         padding: const EdgeInsets.fromLTRB(8, 16, 8, 8),
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 3, crossAxisSpacing: 8, mainAxisSpacing: 8),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 3, crossAxisSpacing: 8, mainAxisSpacing: 8),
         itemCount: _selectedPhotos.length,
         itemBuilder: (context, index) {
           final photo = _selectedPhotos[index];
@@ -774,13 +792,15 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             onOpenFullScreen: () => Navigator.push(
               context,
               PageRouteBuilder(
-                pageBuilder: (context, animation, secondaryAnimation) => FullScreenImageView(
+                pageBuilder: (context, animation, secondaryAnimation) =>
+                    FullScreenImageView(
                   photos: _selectedPhotos,
                   initialIndex: index,
                   ignoredPhotos: _permanentlyIgnoredIds,
                   onToggleKeep: _toggleIgnoredPhoto,
                 ),
-                transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                transitionsBuilder:
+                    (context, animation, secondaryAnimation, child) {
                   return FadeTransition(opacity: animation, child: child);
                 },
               ),
@@ -791,7 +811,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     }
 
     if (_isLoading) {
-      return Center(child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation(Theme.of(context).colorScheme.primary)));
+      return Center(
+          child: CircularProgressIndicator(
+              valueColor:
+                  AlwaysStoppedAnimation(Theme.of(context).colorScheme.primary)));
     }
 
     final l10n = AppLocalizations.of(context);
@@ -807,7 +830,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   Widget _buildBottomBar() {
     if (_isDeleting) return const SizedBox.shrink();
 
-    int photosToDeleteCount = _selectedPhotos.where((p) => !_permanentlyIgnoredIds.contains(p.asset.id)).length;
+    int photosToDeleteCount = _selectedPhotos
+        .where((p) => !_permanentlyIgnoredIds.contains(p.asset.id))
+        .length;
     final l10n = AppLocalizations.of(context);
 
     return Padding(
@@ -816,7 +841,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         duration: const Duration(milliseconds: 400),
         transitionBuilder: (child, animation) {
           return SlideTransition(
-            position: Tween<Offset>(begin: const Offset(0, 0.5), end: Offset.zero).animate(animation),
+            position: Tween<Offset>(
+                    begin: const Offset(0, 0.5), end: Offset.zero)
+                .animate(animation),
             child: FadeTransition(opacity: animation, child: child),
           );
         },
@@ -830,23 +857,34 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                           icon: const Icon(Icons.refresh_rounded),
                           label: FittedBox(child: Text(l10n.reSort)),
                           onPressed: _showNextBatch,
-                          style: TextButton.styleFrom(foregroundColor: Theme.of(context).colorScheme.onSurface.withAlpha(179)), // ~0.7 opacity
+                          style: TextButton.styleFrom(
+                              foregroundColor: Theme.of(context)
+                                  .colorScheme
+                                  .onSurface
+                                  .withAlpha(179)), // ~0.7 opacity
                         ),
                       ),
                       const SizedBox(width: 16),
                       Expanded(
                         flex: 2,
                         child: ElevatedButton.icon(
-                          icon: Icon(photosToDeleteCount > 0 ? Icons.delete_outline_rounded : Icons.check_rounded),
-                          label: FittedBox(child: Text(photosToDeleteCount > 0 ? l10n.delete(photosToDeleteCount) : l10n.pass)),
+                          icon: Icon(photosToDeleteCount > 0
+                              ? Icons.delete_outline_rounded
+                              : Icons.check_rounded),
+                          label: FittedBox(
+                              child: Text(photosToDeleteCount > 0
+                                  ? l10n.delete(photosToDeleteCount)
+                                  : l10n.pass)),
                           onPressed: photosToDeleteCount > 0
                               ? _deletePhotos
                               : _showNextBatch,
                           style: photosToDeleteCount > 0
                               ? null
                               : ElevatedButton.styleFrom(
-                                  backgroundColor: Theme.of(context).colorScheme.surface,
-                                  foregroundColor: Theme.of(context).colorScheme.onSurface,
+                                  backgroundColor:
+                                      Theme.of(context).colorScheme.surface,
+                                  foregroundColor:
+                                      Theme.of(context).colorScheme.onSurface,
                                 ),
                         ),
                       ),
@@ -855,9 +893,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 : ElevatedButton.icon(
                     icon: const Icon(Icons.bolt_rounded),
                     label: FittedBox(child: Text(l10n.analyzePhotos)),
-                    onPressed: _showInitialBatch,
+                    onPressed: () {},
                     key: const Key('analyzePhotosButton'),
-                    style: ElevatedButton.styleFrom(minimumSize: const Size(double.infinity, 56)),
+                    style: ElevatedButton.styleFrom(
+                        minimumSize: const Size(double.infinity, 56)),
                   ),
       ),
     );
@@ -1110,3 +1149,4 @@ class _EmptyStateState extends State<EmptyState> with SingleTickerProviderStateM
     );
   }
 }
+

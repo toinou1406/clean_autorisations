@@ -37,7 +37,7 @@
     "grantPermission": "Conceder permiso",
     "permissionRequired": "Permiso requerido",
     "permissionPermanentlyDenied": "El acceso a las fotos ha sido denegado permanentemente. Para continuar, debe habilitarlo en la configuración de su dispositivo.",
-    "permissionWarning": "Debe seleccionar \"Permitir acceso a todas las fotos\" para usar la aplicación.",
+    "permissionWarning": "No se concedió acceso a las fotos. Por favor, concede acceso total a las fotos para continuar. Si denegaste el permiso anteriormente, es posible que debas habilitarlo en la configuración de tu dispositivo.",
     "cancel": "Cancelar",
     "openSettings": "Abrir la configuración",
     "totalSpaceSaved": "Espacio total ahorrado",

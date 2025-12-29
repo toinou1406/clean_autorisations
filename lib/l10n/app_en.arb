@@ -87,7 +87,7 @@
     "grantPermission": "Grant Permission",
     "permissionRequired": "Permission Required",
     "permissionPermanentlyDenied": "Photo access has been permanently denied. To continue, you must enable it in your device settings.",
-    "permissionWarning": "You must select 'Allow Access to All Photos' to use the app.",
+    "permissionWarning": "Photo access was not granted. Please grant full photo access to continue. If you previously denied permission, you may need to enable it in your device settings.",
     "cancel": "Cancel",
     "openSettings": "Open Settings",
     "totalSpaceSaved": "Total Space Saved",

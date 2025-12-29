@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:clean/l10n/app_localizations.dart';
 import 'package:clean/aurora_widgets.dart'; // For PulsingIcon
+import 'package:permission_handler/permission_handler.dart';
 
 class PermissionScreen extends StatefulWidget {
   final VoidCallback onPermissionGranted;
@@ -28,6 +29,7 @@ class _PermissionScreenState extends State<PermissionScreen>
   bool _showWarning = false;
   bool _isRequesting = false;
   bool _isGranted = false;
+  bool _showSettingsButton = false;
 
   @override
   void initState() {
@@ -42,6 +44,8 @@ class _PermissionScreenState extends State<PermissionScreen>
     });
   }
 
+  // This screen now ONLY sets up the UI. No permission checks happen here.
+  // This guarantees the 'Grant Access' button is shown on first launch.
   Future<void> _initializeScreen() async {
     if (mounted) {
       final languageCode = Localizations.localeOf(context).languageCode;
@@ -59,16 +63,27 @@ class _PermissionScreenState extends State<PermissionScreen>
     super.dispose();
   }
 
+  // When returning to the app, check the permission status silently.
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
-    if (state == AppLifecycleState.resumed && _isRequesting) {
-      // User is returning from the settings screen or permission dialog
-      _isRequesting = false;
-      _checkPermission(showWarning: _showWarning);
+    if (state == AppLifecycleState.resumed && !_isRequesting) {
+      _checkStatusOnResume();
     }
   }
 
+  // This check is only for resuming the app. If authorized, it navigates.
+  // It does not show any warnings or change any buttons if not authorized.
+  Future<void> _checkStatusOnResume() async {
+    final status = await PhotoManager.getPermissionState(
+      requestOption: const PermissionRequestOption(),
+    );
+    if (status == PermissionState.authorized) {
+      _grantAccess();
+    }
+  }
+
+  // This method is ONLY for the button press.
   Future<void> _requestPermission() async {
     if (_isRequesting) return;
 
@@ -76,32 +91,27 @@ class _PermissionScreenState extends State<PermissionScreen>
       _isRequesting = true;
     });
 
-    final result = await PhotoManager.requestPermissionExtend();
-    
-    if (result.isAuth) {
-      _grantAccess();
-    } else {
-      // Permission not fully granted
-      setState(() {
-        _showWarning = true;
-        _isRequesting = false;
-      });
-    }
-  }
+    try {
+      final result = await PhotoManager.requestPermissionExtend();
+      if (!mounted) return;
 
-  Future<void> _checkPermission({bool showWarning = false}) async {
-    final status = await PhotoManager.requestPermissionExtend();
-    if (status.isAuth) {
-      _grantAccess();
-    } else {
-      if (mounted && showWarning) {
+      if (result == PermissionState.authorized) {
+        _grantAccess();
+      } else {
+        // If permission is anything other than authorized, show the warning and settings button.
         setState(() {
           _showWarning = true;
+          _showSettingsButton = true;
+        });
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isRequesting = false;
         });
       }
     }
   }
-
 
   void _grantAccess() async {
     if (_isGranted) return;
@@ -165,7 +175,7 @@ class _PermissionScreenState extends State<PermissionScreen>
                     l10n.permissionDescription,
                     textAlign: TextAlign.center,
                     style: theme.textTheme.bodyLarge?.copyWith(
-                      color: theme.colorScheme.primary, // ~0.7 opacity
+                      color: theme.colorScheme.primary,
                       height: 1.6,
                     ),
                   ),
@@ -181,14 +191,24 @@ class _PermissionScreenState extends State<PermissionScreen>
                     ),
                   ],
                   const Spacer(flex: 3),
-                  ElevatedButton(
-                    onPressed: _requestPermission,
-                    style: theme.elevatedButtonTheme.style?.copyWith(
-                      padding: WidgetStateProperty.all(
-                          const EdgeInsets.symmetric(vertical: 20)),
+                  if (_showSettingsButton)
+                    ElevatedButton(
+                      onPressed: openAppSettings,
+                      style: theme.elevatedButtonTheme.style?.copyWith(
+                        padding: WidgetStateProperty.all(
+                            const EdgeInsets.symmetric(vertical: 20)),
+                      ),
+                      child: Text(l10n.openSettings),
+                    )
+                  else
+                    ElevatedButton(
+                      onPressed: _isRequesting ? null : _requestPermission,
+                      style: theme.elevatedButtonTheme.style?.copyWith(
+                        padding: WidgetStateProperty.all(
+                            const EdgeInsets.symmetric(vertical: 20)),
+                      ),
+                      child: Text(l10n.grantPermission),
                     ),
-                    child: Text(l10n.grantPermission),
-                  ),
                   const SizedBox(height: 20),
                 ],
               ),
@@ -207,7 +227,7 @@ class _PermissionScreenState extends State<PermissionScreen>
         Text(
           l10n.chooseYourLanguage.toUpperCase(),
           style: theme.textTheme.bodyMedium?.copyWith(
-            color: theme.colorScheme.onSurface.withAlpha(128), // ~0.5 opacity
+            color: theme.colorScheme.onSurface.withAlpha(128),
             fontWeight: FontWeight.w600,
             letterSpacing: 0.8,
           ),
@@ -228,10 +248,9 @@ class _PermissionScreenState extends State<PermissionScreen>
           style: SegmentedButton.styleFrom(
             backgroundColor: theme.colorScheme.surface,
             foregroundColor:
-                theme.colorScheme.onSurface.withAlpha(179), // ~0.7 opacity
-            selectedForegroundColor: theme.colorScheme.primary,
+                theme.colorScheme.onSurface.withAlpha(179),
             selectedBackgroundColor:
-                theme.colorScheme.primary.withAlpha(26), // ~0.1 opacity
+                theme.colorScheme.primary.withAlpha(26),
             side: BorderSide(color: theme.dividerColor),
           ),
         ),

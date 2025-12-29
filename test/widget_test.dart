@@ -14,7 +14,7 @@ void main() {
   testWidgets('Initial UI smoke test', (WidgetTester tester) async {
     // Build our app and trigger a frame.
     // We provide the home route as the initial route for this test.
-    await tester.pumpWidget(const MyApp(initialRoute: AppRoutes.home, locale: Locale('en')));
+    await tester.pumpWidget(const MyApp(locale: Locale('en')));
 
     // Let the app settle.
     await tester.pumpAndSettle();

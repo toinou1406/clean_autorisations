@@ -37,7 +37,7 @@
     "grantPermission": "Autoriser l'accès",
     "permissionRequired": "Autorisation requise",
     "permissionPermanentlyDenied": "L'accès aux photos a été refusé de manière permanente. Pour continuer, vous devez l'activer dans les paramètres de votre appareil.",
-    "permissionWarning": "Vous devez sélectionner 'Autoriser l'accès à toutes les photos' pour utiliser l'application.",
+    "permissionWarning": "L'accès aux photos n'a pas été autorisé. Veuillez autoriser l'accès complet aux photos pour continuer. Si vous avez précédemment refusé l'autorisation, vous devrez peut-être l'activer dans les paramètres de votre appareil.",
     "cancel": "Annuler",
     "openSettings": "Ouvrir les paramètres",
     "totalSpaceSaved": "Espace total économisé",

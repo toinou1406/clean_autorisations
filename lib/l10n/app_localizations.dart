@@ -323,7 +323,7 @@ abstract class AppLocalizations {
   /// No description provided for @permissionWarning.
   ///
   /// In en, this message translates to:
-  /// **'You must select \'Allow Access to All Photos\' to use the app.'**
+  /// **'Photo access was not granted. Please grant full photo access to continue. If you previously denied permission, you may need to enable it in your device settings.'**
   String get permissionWarning;
 
   /// No description provided for @cancel.

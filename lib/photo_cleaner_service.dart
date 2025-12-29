@@ -5,9 +5,9 @@ import 'package:flutter/foundation.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:disk_space_plus/disk_space_plus.dart';
 import 'package:flutter/services.dart';
+import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 
 import 'photo_analyzer.dart';
-import 'face_detector_service.dart'; 
 
 //##############################################################################
 //# 1. ISOLATE DATA STRUCTURES & TOP-LEVEL FUNCTION
@@ -41,9 +41,21 @@ Future<dynamic> analyzePhotoInIsolate(IsolateData isolateData) async {
     BackgroundIsolateBinaryMessenger.ensureInitialized(isolateData.token);
 
     // Face detection is now the first step inside the isolate.
-    final faceDetector = FaceDetectorService();
-    final bool hasFace = await faceDetector.hasFaces(isolateData.filePath);
-    faceDetector.dispose(); // Dispose after use to free up resources
+    final faceDetector = FaceDetector(
+      options: FaceDetectorOptions(
+        performanceMode: FaceDetectorMode.fast,
+        enableContours: false,
+        enableLandmarks: false,
+        enableClassification: false,
+        minFaceSize: 0.1,
+      ),
+    );
+
+    final inputImage = InputImage.fromFilePath(isolateData.filePath);
+    final List<Face> faces = await faceDetector.processImage(inputImage);
+    final bool hasFace = faces.isNotEmpty;
+    
+    await faceDetector.close();
 
     if (hasFace) {
       return null; // Skip this photo entirely if it has a face
@@ -52,7 +64,7 @@ Future<dynamic> analyzePhotoInIsolate(IsolateData isolateData) async {
     final asset = await AssetEntity.fromId(isolateData.assetId);
     if (asset == null) return null;
 
-    final imageBytes = await asset.thumbnailDataWithSize(const ThumbnailSize(32, 32));
+    final imageBytes = await asset.thumbnailDataWithSize(const ThumbnailSize(16, 16));
     if (imageBytes == null) return null;
 
     final analyzer = PhotoAnalyzer();
@@ -132,7 +144,7 @@ class PhotoCleanerService {
 
     final AssetPathEntity mainAlbum = albums.first;
     final int totalPhotos = await mainAlbum.assetCountAsync;
-    const int photosToFetch = 300;
+    const int photosToFetch = 150;
     final List<AssetEntity> recentAssets = await mainAlbum.getAssetListRange(
       start: 0,
       end: totalPhotos < photosToFetch ? totalPhotos : photosToFetch,
@@ -162,7 +174,7 @@ class PhotoCleanerService {
     }
 
     final List<IsolateAnalysisResult> analysisResults = [];
-    const batchSize = 12;
+    const batchSize = 8;
     for (int i = 0; i < analysisFutures.length; i += batchSize) {
       final end = (i + batchSize > analysisFutures.length) ? analysisFutures.length : i + batchSize;
       final List<dynamic> batchResults = await Future.wait(analysisFutures.sublist(i, end));

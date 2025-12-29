@@ -127,7 +127,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get permissionPermanentlyDenied => '照片访问权限已被永久拒绝。要继续，您必须在设备设置中启用它。';
 
   @override
-  String get permissionWarning => '您必须选择“允许访问所有照片”才能使用该应用程序。';
+  String get permissionWarning =>
+      '照片访问未被授予。请授予完整的照片访问权限以继续。如果您之前拒绝了权限，您可能需要在您的设备设置中启用它。';
 
   @override
   String get cancel => '取消';
