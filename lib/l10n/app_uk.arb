@@ -1,3 +1,4 @@
+
 {
     "@@locale": "uk",
     "privacyFirst": "Конфіденційність перш за все",
@@ -34,14 +35,15 @@
     "permissionTitle": "Потрібен доступ до фотографій",
     "permissionDescription": "SimpleClean потребує доступу до ваших фотографій, щоб допомогти вам їх очистити.",
     "grantPermission": "Надати дозвіл",
-    "permissionRequired": "Permission Required",
-    "permissionPermanentlyDenied": "Photo access has been permanently denied. To continue, you must enable it in your device settings.",
-    "cancel": "Cancel",
-    "openSettings": "Open Settings",
+    "permissionRequired": "Потрібен дозвіл",
+    "permissionPermanentlyDenied": "Доступ до фотографій було назавжди заборонено. Щоб продовжити, ви повинні ввімкнути його в налаштуваннях свого пристрою.",
+    "permissionWarning": "Щоб користуватися програмою, потрібно вибрати \"Дозволити доступ до всіх фотографій\".",
+    "cancel": "Скасувати",
+    "openSettings": "Відкрити налаштування",
     "totalSpaceSaved": "Загалом заощаджено місця",
     "readyToClean": "Готові до очищення?",
     "letsFindPhotos": "Давайте знайдемо фотографії, які можна безпечно видалити.",
     "storageSpaceSaved": "Зекономлено",
   "gridTutorialText": "Торкніться, щоб переглянути на весь екран. Натисніть і утримуйте або двічі торкніться, щоб зберегти.",
-  "gridTutorialDismiss": "Tap anywhere to continue"
+  "gridTutorialDismiss": "Торкніться будь-де, щоб продовжити"
 }

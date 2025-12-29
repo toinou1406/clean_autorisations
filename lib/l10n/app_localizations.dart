@@ -320,6 +320,12 @@ abstract class AppLocalizations {
   /// **'Photo access has been permanently denied. To continue, you must enable it in your device settings.'**
   String get permissionPermanentlyDenied;
 
+  /// No description provided for @permissionWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'You must select \'Allow Access to All Photos\' to use the app.'**
+  String get permissionWarning;
+
   /// No description provided for @cancel.
   ///
   /// In en, this message translates to:

@@ -1,3 +1,4 @@
+
 {
     "@@locale": "es",
     "privacyFirst": "La privacidad primero",
@@ -34,14 +35,15 @@
     "permissionTitle": "Acceso a fotos requerido",
     "permissionDescription": "SimpleClean necesita acceso a tus fotos para ayudarte a limpiarlas.",
     "grantPermission": "Conceder permiso",
-    "permissionRequired": "Permission Required",
-    "permissionPermanentlyDenied": "Photo access has been permanently denied. To continue, you must enable it in your device settings.",
-    "cancel": "Cancel",
-    "openSettings": "Open Settings",
+    "permissionRequired": "Permiso requerido",
+    "permissionPermanentlyDenied": "El acceso a las fotos ha sido denegado permanentemente. Para continuar, debe habilitarlo en la configuración de su dispositivo.",
+    "permissionWarning": "Debe seleccionar \"Permitir acceso a todas las fotos\" para usar la aplicación.",
+    "cancel": "Cancelar",
+    "openSettings": "Abrir la configuración",
     "totalSpaceSaved": "Espacio total ahorrado",
     "readyToClean": "¿Listo para limpiar?",
     "letsFindPhotos": "Busquemos algunas fotos que puedas eliminar de forma segura.",
     "storageSpaceSaved": "Ahorrado",
   "gridTutorialText": "Toca para ver en pantalla completa. Mantén presionado o toca dos veces para conservar.",
-  "gridTutorialDismiss": "Tap anywhere to continue"
+  "gridTutorialDismiss": "Toca en cualquier lugar para continuar"
 }

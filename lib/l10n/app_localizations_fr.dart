@@ -135,6 +135,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'L\'accès aux photos a été refusé de manière permanente. Pour continuer, vous devez l\'activer dans les paramètres de votre appareil.';
 
   @override
+  String get permissionWarning =>
+      'Vous devez sélectionner \'Autoriser l\'accès à toutes les photos\' pour utiliser l\'application.';
+
+  @override
   String get cancel => 'Annuler';
 
   @override

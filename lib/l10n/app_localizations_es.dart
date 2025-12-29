@@ -127,17 +127,21 @@ class AppLocalizationsEs extends AppLocalizations {
   String get grantPermission => 'Conceder permiso';
 
   @override
-  String get permissionRequired => 'Permission Required';
+  String get permissionRequired => 'Permiso requerido';
 
   @override
   String get permissionPermanentlyDenied =>
-      'Photo access has been permanently denied. To continue, you must enable it in your device settings.';
+      'El acceso a las fotos ha sido denegado permanentemente. Para continuar, debe habilitarlo en la configuración de su dispositivo.';
 
   @override
-  String get cancel => 'Cancel';
+  String get permissionWarning =>
+      'Debe seleccionar \"Permitir acceso a todas las fotos\" para usar la aplicación.';
 
   @override
-  String get openSettings => 'Open Settings';
+  String get cancel => 'Cancelar';
+
+  @override
+  String get openSettings => 'Abrir la configuración';
 
   @override
   String get totalSpaceSaved => 'Espacio total ahorrado';
@@ -157,5 +161,5 @@ class AppLocalizationsEs extends AppLocalizations {
       'Toca para ver en pantalla completa. Mantén presionado o toca dos veces para conservar.';
 
   @override
-  String get gridTutorialDismiss => 'Tap anywhere to continue';
+  String get gridTutorialDismiss => 'Toca en cualquier lugar para continuar';
 }

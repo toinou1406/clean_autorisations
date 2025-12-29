@@ -1,3 +1,4 @@
+
 {
     "@@locale": "en",
     "privacyFirst": "Privacy First",
@@ -86,6 +87,7 @@
     "grantPermission": "Grant Permission",
     "permissionRequired": "Permission Required",
     "permissionPermanentlyDenied": "Photo access has been permanently denied. To continue, you must enable it in your device settings.",
+    "permissionWarning": "You must select 'Allow Access to All Photos' to use the app.",
     "cancel": "Cancel",
     "openSettings": "Open Settings",
     "totalSpaceSaved": "Total Space Saved",

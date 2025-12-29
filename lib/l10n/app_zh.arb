@@ -1,14 +1,16 @@
+
 {
     "appTitle": "SimpleClean",
     "homeScreenTitle": "主页",
     "settings": "设置",
-    "permissionTitle": "需要访问权限",
+    "permissionTitle": "需要照片访问权限",
     "permissionDescription": "为了扫描和管理您的照片，此应用程序需要访问您设备存储的权限。",
     "grantPermission": "授予权限",
-    "permissionRequired": "Permission Required",
-    "permissionPermanentlyDenied": "Photo access has been permanently denied. To continue, you must enable it in your device settings.",
-    "cancel": "Cancel",
-    "openSettings": "Open Settings",
+    "permissionRequired": "需要权限",
+    "permissionPermanentlyDenied": "照片访问权限已被永久拒绝。要继续，您必须在设备设置中启用它。",
+    "permissionWarning": "您必须选择“允许访问所有照片”才能使用该应用程序。",
+    "cancel": "取消",
+    "openSettings": "打开设置",
     "chooseYourLanguage": "选择您的语言",
     "totalSpaceSaved": "总共节省的空间",
     "used": "已使用",
@@ -84,5 +86,5 @@
     "letsFindPhotos": "让我们查找一些可以安全删除的照片。",
     "storageSpaceSaved": "已节省",
   "gridTutorialText": "点击可全屏查看照片。长按或双击可保留照片。",
-  "gridTutorialDismiss": "Tap anywhere to continue"
+  "gridTutorialDismiss": "在任何地方点一下即可继续"
 }

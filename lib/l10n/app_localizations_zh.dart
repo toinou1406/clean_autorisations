@@ -113,7 +113,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get chooseYourLanguage => '选择您的语言';
 
   @override
-  String get permissionTitle => '需要访问权限';
+  String get permissionTitle => '需要照片访问权限';
 
   @override
   String get permissionDescription => '为了扫描和管理您的照片，此应用程序需要访问您设备存储的权限。';
@@ -122,17 +122,19 @@ class AppLocalizationsZh extends AppLocalizations {
   String get grantPermission => '授予权限';
 
   @override
-  String get permissionRequired => 'Permission Required';
+  String get permissionRequired => '需要权限';
 
   @override
-  String get permissionPermanentlyDenied =>
-      'Photo access has been permanently denied. To continue, you must enable it in your device settings.';
+  String get permissionPermanentlyDenied => '照片访问权限已被永久拒绝。要继续，您必须在设备设置中启用它。';
 
   @override
-  String get cancel => 'Cancel';
+  String get permissionWarning => '您必须选择“允许访问所有照片”才能使用该应用程序。';
 
   @override
-  String get openSettings => 'Open Settings';
+  String get cancel => '取消';
+
+  @override
+  String get openSettings => '打开设置';
 
   @override
   String get totalSpaceSaved => '总共节省的空间';
@@ -150,5 +152,5 @@ class AppLocalizationsZh extends AppLocalizations {
   String get gridTutorialText => '点击可全屏查看照片。长按或双击可保留照片。';
 
   @override
-  String get gridTutorialDismiss => 'Tap anywhere to continue';
+  String get gridTutorialDismiss => '在任何地方点一下即可继续';
 }

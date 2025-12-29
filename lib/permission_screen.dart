@@ -1,4 +1,5 @@
-import 'dart:developer' as developer;
+
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:photo_manager/photo_manager.dart';
@@ -24,9 +25,8 @@ class _PermissionScreenState extends State<PermissionScreen>
   String? _currentLanguageCode;
   late AnimationController _fadeController;
 
-  // State flags to manage the permission request flow
-  bool _isResumingFromSettings = false;
-  bool _hasAttemptedRequest = false;
+  bool _showWarning = false;
+  bool _isRequesting = false;
 
   @override
   void initState() {
@@ -61,66 +61,46 @@ class _PermissionScreenState extends State<PermissionScreen>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
-    if (state == AppLifecycleState.resumed && _isResumingFromSettings) {
-      _isResumingFromSettings = false; // Reset flag
-      
-      // Automatically re-check permission after returning from settings.
-      // Add a small delay to ensure the OS has updated the permission state.
-      Future.delayed(const Duration(milliseconds: 500), () {
-        if (mounted) {
-          _handleSilentPermissionCheck();
-        }
+    if (state == AppLifecycleState.resumed && _isRequesting) {
+      // User is returning from the settings screen or permission dialog
+      _isRequesting = false;
+      _checkPermission(showWarning: _showWarning);
+    }
+  }
+
+  Future<void> _requestPermission() async {
+    if (_isRequesting) return;
+
+    setState(() {
+      _isRequesting = true;
+    });
+
+    final result = await PhotoManager.requestPermissionExtend();
+    
+    if (result.isAuth) {
+      _grantAccess();
+    } else {
+      // Permission not fully granted
+      setState(() {
+        _showWarning = true;
+        _isRequesting = false;
       });
     }
   }
 
-  /// This is the main entry point when the user clicks the button.
-  Future<void> _handlePermissionRequest() async {
-    // We call requestPermissionExtend primarily for its side-effect of showing
-    // the OS permission dialog if the status is undetermined.
-    await PhotoManager.requestPermissionExtend();
-
-    // After the dialog is dismissed, we use getAssetPathList to reliably check
-    // the actual, current permission state, as this has proven to work
-    // in the resume-from-settings flow.
-    try {
-      // According to docs, this throws if permission is not granted.
-      await PhotoManager.getAssetPathList();
-
-      // If we get here without an exception, permission has been granted.
+  Future<void> _checkPermission({bool showWarning = false}) async {
+    final status = await PhotoManager.requestPermissionExtend();
+    if (status.isAuth) {
       _grantAccess();
-    } catch (e) {
-      // If getAssetPathList throws, it means we definitely don't have access.
-      // Now we apply the logic to either do nothing or go to settings.
-      if (_hasAttemptedRequest) {
-        // This is the second time we've ended up here, so guide to settings.
-        _isResumingFromSettings = true;
-        await PhotoManager.openSetting();
-      } else {
-        // This was the first failed attempt. Just set the flag and let the user try again.
-        if (mounted) {
-          setState(() {
-            _hasAttemptedRequest = true;
-          });
-        }
+    } else {
+      if (mounted && showWarning) {
+        setState(() {
+          _showWarning = true;
+        });
       }
     }
   }
 
-  /// This function is for silent checks when returning from settings.
-  /// It uses `getAssetPathList` which, per documentation, should throw an
-  /// error if permission is not granted.
-  Future<void> _handleSilentPermissionCheck() async {
-    developer.log("Checking permission status on resume...");
-    try {
-      await PhotoManager.getAssetPathList();
-      developer.log("Permission check successful (getAssetPathList did not throw). Granting access.");
-      _grantAccess();
-    } catch (e, s) {
-      developer.log("Permission check failed, user likely did not grant permission in settings.", name: 'permission.error', error: e, stackTrace: s);
-      // If it fails, do nothing. The user remains on the screen.
-    }
-  }
 
   void _grantAccess() async {
     final prefs = await SharedPreferences.getInstance();
@@ -186,9 +166,20 @@ class _PermissionScreenState extends State<PermissionScreen>
                       height: 1.6,
                     ),
                   ),
+                  if (_showWarning) ...[
+                    const SizedBox(height: 16),
+                    Text(
+                      l10n.permissionWarning,
+                      textAlign: TextAlign.center,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: theme.colorScheme.error,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
                   const Spacer(flex: 3),
                   ElevatedButton(
-                    onPressed: _handlePermissionRequest,
+                    onPressed: _requestPermission,
                     style: theme.elevatedButtonTheme.style?.copyWith(
                       padding: WidgetStateProperty.all(
                           const EdgeInsets.symmetric(vertical: 20)),

@@ -130,6 +130,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Photo access has been permanently denied. To continue, you must enable it in your device settings.';
 
   @override
+  String get permissionWarning =>
+      'You must select \'Allow Access to All Photos\' to use the app.';
+
+  @override
   String get cancel => 'Cancel';
 
   @override
