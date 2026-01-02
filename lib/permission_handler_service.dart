@@ -1,63 +1,71 @@
 
 import 'dart:async';
-import 'package:photo_manager/photo_manager.dart';
-import 'package:permission_handler/permission_handler.dart' as handler;
+import 'package:flutter/foundation.dart';
+import 'package:permission_handler/permission_handler.dart' as perm_handler;
 
 enum AppPermissionStatus {
+  unknown,
+  denied,
   authorized,
   limited,
-  denied,
-  permanentlyDenied,
-  unknown
+  permanentlyDenied;
+
+  factory AppPermissionStatus.from(perm_handler.PermissionStatus status) {
+    switch (status) {
+      case perm_handler.PermissionStatus.denied:
+        return AppPermissionStatus.denied;
+      case perm_handler.PermissionStatus.granted:
+        return AppPermissionStatus.authorized;
+      case perm_handler.PermissionStatus.limited:
+        return AppPermissionStatus.limited;
+      case perm_handler.PermissionStatus.restricted:
+        return AppPermissionStatus.permanentlyDenied;
+      case perm_handler.PermissionStatus.permanentlyDenied:
+        return AppPermissionStatus.permanentlyDenied;
+      // The 'provisional' status (for iOS push notifications) is not relevant for photo access.
+      // We can treat it as 'denied' if it ever occurs.
+      case perm_handler.PermissionStatus.provisional:
+        return AppPermissionStatus.denied;
+    }
+  }
 }
 
 class PermissionHandlerService {
-  final StreamController<AppPermissionStatus> _statusController = StreamController.broadcast();
-  Stream<AppPermissionStatus> get onStatusChanged => _statusController.stream;
+  final _controller = StreamController<AppPermissionStatus>.broadcast();
+  
+  Stream<AppPermissionStatus> get onStatusChanged => _controller.stream;
 
   PermissionHandlerService() {
-    _checkCurrentStatus();
+    // For web, permissions work differently. We can assume it's granted as
+    // the file picker will be used.
+    if (kIsWeb) {
+      _controller.add(AppPermissionStatus.authorized);
+      return;
+    }
+    _checkInitialPermission();
   }
 
-  Future<void> _checkCurrentStatus() async {
-    final status = await _getMappedPermissionStatus();
-    _statusController.add(status);
-  }
-
-  Future<AppPermissionStatus> _getMappedPermissionStatus() async {
-    final photoStatus = await PhotoManager.getPermissionState(
-        requestOption: const PermissionRequestOption());
-    if (photoStatus == PermissionState.authorized) {
-      return AppPermissionStatus.authorized;
-    }
-    if (photoStatus == PermissionState.limited) {
-      return AppPermissionStatus.limited;
-    }
-    // If not authorized or limited, check with permission_handler for more details
-    final preciseStatus = await handler.Permission.photos.status;
-    if (preciseStatus == handler.PermissionStatus.denied) {
-      return AppPermissionStatus.denied;
-    }
-    if (preciseStatus == handler.PermissionStatus.permanentlyDenied) {
-      return AppPermissionStatus.permanentlyDenied;
-    }
-    return AppPermissionStatus.unknown;
+  Future<void> _checkInitialPermission() async {
+    if (kIsWeb) return;
+    final status = await perm_handler.Permission.photos.status;
+    _controller.add(AppPermissionStatus.from(status));
   }
 
   Future<void> requestPermission() async {
-    await PhotoManager.requestPermissionExtend();
-    await _checkCurrentStatus();
+    if (kIsWeb) return;
+    final status = await perm_handler.Permission.photos.request();
+    _controller.add(AppPermissionStatus.from(status));
   }
 
   Future<void> openAppSettings() async {
-    await handler.openAppSettings();
+    await perm_handler.openAppSettings();
   }
 
   void refreshStatus() {
-    _checkCurrentStatus();
+    _checkInitialPermission();
   }
 
   void dispose() {
-    _statusController.close();
+    _controller.close();
   }
 }
