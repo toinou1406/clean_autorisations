@@ -136,7 +136,15 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get permissionWarning =>
-      'L\'accès aux photos n\'a pas été autorisé. Veuillez autoriser l\'accès complet aux photos pour continuer. Si vous avez précédemment refusé l\'autorisation, vous devrez peut-être l\'activer dans les paramètres de votre appareil.';
+      'L\'accès complet aux photos est requis pour trouver et supprimer les photos indésirables. Veuillez autoriser l\'accès dans les paramètres de votre téléphone.';
+
+  @override
+  String get permissionLimitedWarning =>
+      'Cette application a besoin d\'un accès complet à vos photos pour fonctionner correctement. Veuillez autoriser l\'accès complet dans les paramètres de votre téléphone.';
+
+  @override
+  String get permissionDeniedWarning =>
+      'L\'accès aux photos a été refusé. Cette application a besoin d\'accéder à vos photos pour fonctionner. Veuillez autoriser l\'accès dans les paramètres de votre téléphone.';
 
   @override
   String get cancel => 'Annuler';

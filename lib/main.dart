@@ -893,7 +893,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 : ElevatedButton.icon(
                     icon: const Icon(Icons.bolt_rounded),
                     label: FittedBox(child: Text(l10n.analyzePhotos)),
-                    onPressed: () {},
+                    onPressed: _showInitialBatch,
                     key: const Key('analyzePhotosButton'),
                     style: ElevatedButton.styleFrom(
                         minimumSize: const Size(double.infinity, 56)),

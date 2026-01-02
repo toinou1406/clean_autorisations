@@ -18,6 +18,11 @@ class StorageCircularIndicator extends StatelessWidget {
     return "${(bytes / (1024 * 1024 * 1024)).toStringAsFixed(1)} GB";
   }
 
+  Color _getColor(double percentage) {
+    // Returns a color that transitions from green to red as percentage increases.
+    return Color.lerp(Colors.green, Colors.red, percentage)!;
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -26,12 +31,14 @@ class StorageCircularIndicator extends StatelessWidget {
         ? storageInfo.usedSpace / storageInfo.totalSpace
         : 0.0;
 
+    final Color progressColor = _getColor(percentage);
+
     return CircularPercentIndicator(
       radius: 120.0,
       lineWidth: 16.0,
       percent: percentage,
       // The clean, modern progress bar
-      progressColor: theme.colorScheme.primary,
+      progressColor: progressColor,
       // The subtle grey contour for the background
       backgroundColor: theme.dividerColor.withAlpha(26), // ~0.1 opacity
       circularStrokeCap: CircularStrokeCap.round,
@@ -46,7 +53,7 @@ class StorageCircularIndicator extends StatelessWidget {
             "${(percentage * 100).round()}%",
             style: theme.textTheme.displaySmall?.copyWith(
               fontWeight: FontWeight.bold,
-              color: theme.colorScheme.primary,
+              color: progressColor,
             ),
           ),
           const SizedBox(height: 4),

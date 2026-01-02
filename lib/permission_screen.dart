@@ -30,6 +30,8 @@ class _PermissionScreenState extends State<PermissionScreen>
   bool _isRequesting = false;
   bool _isGranted = false;
   bool _showSettingsButton = false;
+  bool _isLimited = false;
+  bool _isDenied = false;
 
   @override
   void initState() {
@@ -75,37 +77,37 @@ class _PermissionScreenState extends State<PermissionScreen>
   // This check is only for resuming the app. If authorized, it navigates.
   // It does not show any warnings or change any buttons if not authorized.
   Future<void> _checkStatusOnResume() async {
-    final status = await PhotoManager.getPermissionState(
-      requestOption: const PermissionRequestOption(),
-    );
-    if (status == PermissionState.authorized) {
-      _grantAccess();
-    }
+    widget.onPermissionGranted();
   }
 
-  // This method is ONLY for the button press.
   Future<void> _requestPermission() async {
     if (_isRequesting) return;
-
     setState(() {
       _isRequesting = true;
+      _showWarning = false;
+      _isLimited = false;
+      _isDenied = false;
     });
 
     try {
-      final result = await PhotoManager.requestPermissionExtend();
-      if (!mounted) return;
-
-      if (result == PermissionState.authorized) {
-        _grantAccess();
-      } else {
-        // If permission is anything other than authorized, show the warning and settings button.
-        setState(() {
-          _showWarning = true;
-          _showSettingsButton = true;
-        });
-      }
+      await PhotoManager.requestPermissionExtend();
     } finally {
       if (mounted) {
+        widget.onPermissionGranted();
+        final state = await PhotoManager.getPermissionState(
+          requestOption: const PermissionRequestOption(),
+        );
+        if (state != PermissionState.authorized) {
+          setState(() {
+            _showWarning = true;
+            _showSettingsButton = true;
+            if (state == PermissionState.limited) {
+              _isLimited = true;
+            } else {
+              _isDenied = true;
+            }
+          });
+        }
         setState(() {
           _isRequesting = false;
         });
@@ -182,7 +184,7 @@ class _PermissionScreenState extends State<PermissionScreen>
                   if (_showWarning) ...[
                     const SizedBox(height: 16),
                     Text(
-                      l10n.permissionWarning,
+                      _isLimited ? l10n.permissionLimitedWarning : l10n.permissionWarning,
                       textAlign: TextAlign.center,
                       style: theme.textTheme.bodyMedium?.copyWith(
                         color: theme.colorScheme.error,

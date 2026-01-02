@@ -13,58 +13,46 @@ class PermissionWrapper extends StatefulWidget {
   PermissionWrapperState createState() => PermissionWrapperState();
 }
 
-class PermissionWrapperState extends State<PermissionWrapper> with WidgetsBindingObserver {
-  bool? _hasPermission;
+class PermissionWrapperState extends State<PermissionWrapper> {
+  Future<PermissionState> _permissionStateFuture;
 
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addObserver(this);
-    _checkPermissions();
-  }
+  PermissionWrapperState()
+      : _permissionStateFuture = PhotoManager.getPermissionState(
+          requestOption: const PermissionRequestOption(),
+        );
 
-  @override
-  void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    super.dispose();
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) {
-      _checkPermissions();
-    }
-  }
-
-  Future<void> _checkPermissions() async {
-    final state = await PhotoManager.requestPermissionExtend();
-    if (mounted) {
-      final hasPermission = state.hasAccess;
-      if (hasPermission != _hasPermission) {
-        setState(() {
-          _hasPermission = hasPermission;
-        });
-      }
-    }
+  void refresh() {
+    setState(() {
+      _permissionStateFuture = Future.delayed(const Duration(milliseconds: 500), () {
+        return PhotoManager.getPermissionState(
+          requestOption: const PermissionRequestOption(),
+        );
+      });
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_hasPermission == null) {
-      return const Scaffold(
-        body: Center(
-          child: CircularProgressIndicator(),
-        ),
-      );
-    }
-    
-    return _hasPermission!
-        ? HomeScreen(onLocaleChanged: widget.onLocaleChanged)
-        : PermissionScreen(
-              onPermissionGranted: () {
-                _checkPermissions();
-              },
-              onLocaleChanged: widget.onLocaleChanged,
-            );
+    return FutureBuilder<PermissionState>(
+      future: _permissionStateFuture,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Scaffold(
+            body: Center(
+              child: CircularProgressIndicator(),
+            ),
+          );
+        }
+
+        if (snapshot.hasData && snapshot.data == PermissionState.authorized) {
+          return HomeScreen(onLocaleChanged: widget.onLocaleChanged);
+        }
+
+        return PermissionScreen(
+          onPermissionGranted: refresh,
+          onLocaleChanged: widget.onLocaleChanged,
+        );
+      },
+    );
   }
 }

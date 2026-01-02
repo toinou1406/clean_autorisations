@@ -131,7 +131,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get permissionWarning =>
-      'Photo access was not granted. Please grant full photo access to continue. If you previously denied permission, you may need to enable it in your device settings.';
+      'Full photo access is required to find and delete unwanted photos. Please grant access in your phone\'s settings.';
+
+  @override
+  String get permissionLimitedWarning =>
+      'This app needs full access to your photos to function properly. Please grant full access in your phone\'s settings.';
+
+  @override
+  String get permissionDeniedWarning =>
+      'Photo access was denied. This app needs access to your photos to work. Please grant access in your phone\'s settings.';
 
   @override
   String get cancel => 'Cancel';
