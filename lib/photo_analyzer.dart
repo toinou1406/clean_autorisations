@@ -1,3 +1,4 @@
+
 import 'dart:developer' as developer;
 import 'package:flutter/foundation.dart';
 import 'dart:math' as math;
@@ -5,6 +6,21 @@ import 'dart:math' as math;
 import 'package:image/image.dart' as img;
 import 'package:crypto/crypto.dart';
 
+//##############################################################################
+//# SCORE WEIGHTS
+// Weights determine the importance of each metric in the final score.
+// Higher weight = more importance. This makes the algorithm tunable.
+//##############################################################################
+const double _weightScreenshot = 500.0; // Is it a screenshot?
+const double _weightBlur = 150.0;       // How blurry is the image?
+const double _weightLuminance = 120.0;  // How dark or overexposed is it?
+const double _weightComplexity = 80.0;   // How simple/uninteresting is it?
+
+/// Represents the analysis results for a single photo.
+///
+/// This class holds the raw metrics calculated from the image and is responsible
+/// for calculating a `finalScore` that determines how likely a photo is
+/// a good candidate for deletion.
 class PhotoAnalysisResult {
   final String md5Hash;
   final String pHash;
@@ -13,7 +29,6 @@ class PhotoAnalysisResult {
   final double entropyScore;
   final double edgeDensityScore;
   final bool isFromScreenshotAlbum;
-  final double aestheticScore;
   double finalScore = 0.0;
 
   PhotoAnalysisResult({
@@ -24,53 +39,63 @@ class PhotoAnalysisResult {
     required this.entropyScore,
     required this.edgeDensityScore,
     required this.isFromScreenshotAlbum,
-    this.aestheticScore = 0.5,
   }) {
     finalScore = _calculateFinalScore();
   }
 
-  factory PhotoAnalysisResult.empty() {
-    return PhotoAnalysisResult(
-      md5Hash: '',
-      pHash: '',
-      blurScore: 150.0,
-      luminanceScore: 128.0,
-      entropyScore: 6.0,
-      edgeDensityScore: 0.05,
-      isFromScreenshotAlbum: false,
-    );
-  }
-
+  /// Calculates the final score based on normalized and weighted metrics.
+  ///
+  /// This new algorithm is more readable and easier to tune than the previous
+  /// series of if-statements. It normalizes each metric to a 0-1 scale
+  /// and applies a weight.
   double _calculateFinalScore() {
-    double score = 0;
-    if (isFromScreenshotAlbum) {
-      return 2000.0;
-    }
-    if (edgeDensityScore > 0.07 && entropyScore < 5.5) {
-      score += 400;
-    }
-    if (luminanceScore < 50.0) {
-      score += 200;
-    }
-    if (blurScore < 100.0) {
-      score += 200;
-    }
-    if (luminanceScore < 60.0 && blurScore < 120.0) {
-      score += 400;
-    }
-    if (luminanceScore > 240.0) {
-      score -= 100;
-    }
-    if (edgeDensityScore > 0.08) {
-      score += 300;
-    }
+    // 1. Screenshot Score (very high impact)
+    final double screenshotScore = isFromScreenshotAlbum ? 1.0 : 0.0;
+
+    // 2. Blur Score (high impact)
+    final double normalizedBlurScore = _normalize(blurScore, 80.0, 300.0, invert: true);
+
+    // 3. Luminance Score (high impact for extremes)
+    final double darkScore = _normalize(luminanceScore, 50.0, 100.0, invert: true);
+    final double brightScore = _normalize(luminanceScore, 220.0, 180.0);
+    final double normalizedLuminanceScore = math.max(darkScore, brightScore);
+    
+    // 4. Complexity Score (medium impact)
+    final double lowEntropyScore = _normalize(entropyScore, 4.0, 6.0, invert: true);
+    final double lowEdgeScore = _normalize(edgeDensityScore, 0.05, 0.1, invert: true);
+    final double complexityScore = math.min(lowEntropyScore, lowEdgeScore);
+
+    // 5. Weighted Sum
+    final double totalScore = (screenshotScore * _weightScreenshot) +
+                              (normalizedBlurScore * _weightBlur) +
+                              (normalizedLuminanceScore * _weightLuminance) +
+                              (complexityScore * _weightComplexity);
+    
     if (kDebugMode) {
       developer.log(
-          "Photo [${md5Hash.substring(0, 6)}...]: Final Score = $score (Blur: $blurScore, Lum: $luminanceScore, Entropy: $entropyScore, Edges: $edgeDensityScore, isSS: $isFromScreenshotAlbum)",
+          "Photo [${md5Hash.substring(0, 6)}...]: Final Score = ${totalScore.toStringAsFixed(2)} \n"
+          "  - Blur: ${normalizedBlurScore.toStringAsFixed(2)} (raw: ${blurScore.toStringAsFixed(2)})\n"
+          "  - Lum: ${normalizedLuminanceScore.toStringAsFixed(2)} (raw: ${luminanceScore.toStringAsFixed(2)})\n"
+          "  - Cmplx: ${complexityScore.toStringAsFixed(2)} (entr: ${entropyScore.toStringAsFixed(2)}, edge: ${edgeDensityScore.toStringAsFixed(2)})\n"
+          "  - isSS: $isFromScreenshotAlbum",
           name: 'photo_analyzer.score',
         );
     }
-    return score;
+    
+    return totalScore;
+  }
+
+  /// Helper function to normalize a value to a 0.0-1.0 range.
+  double _normalize(double value, double low, double high, {bool invert = false}) {
+    if (invert) {
+      if (value >= high) return 0.0;
+      if (value <= low) return 1.0;
+      return (high - value) / (high - low);
+    } else {
+      if (value <= low) return 0.0;
+      if (value >= high) return 1.0;
+      return (value - low) / (high - low);
+    }
   }
 }
 
@@ -113,15 +138,9 @@ class PhotoAnalyzer {
 
   double _calculateLaplacianVariance(img.Image image) {
     final laplace = img.convolution(image, filter: [
-      0,
-      1,
-      0,
-      1,
-      -4,
-      1,
-      0,
-      1,
-      0,
+      0, 1, 0,
+      1, -4, 1,
+      0, 1, 0,
     ]);
     final pixels = laplace.getBytes(order: img.ChannelOrder.red);
     double mean = pixels.reduce((a, b) => a + b) / pixels.length;
@@ -159,44 +178,35 @@ class PhotoAnalyzer {
     return edgeCount / edgePixels.length;
   }
 
-  Future<double> _getAestheticScore(img.Image image) async {
-    return 0.5;
-  }
-
-
   Future<PhotoAnalysisResult> analyze(Uint8List imageBytes,
       {bool isFromScreenshotAlbum = false}) async {
-    if (kDebugMode) {
-      final hash = md5.convert(imageBytes).toString().substring(0, 6);
-      developer.log("ANALYZE START for photo [$hash]...", name: 'photo_analyzer.life_cycle');
-    }
+
     final originalImage = img.decodeImage(imageBytes);
     if (originalImage == null) {
       throw Exception("Could not decode image");
     }
+    
+    // Use a small, grayscale image for fast analysis.
     final lowResGray = img.copyResize(originalImage,
         width: 64, height: 64, interpolation: img.Interpolation.average);
     img.grayscale(lowResGray);
+    
     final md5Hash = md5.convert(imageBytes).toString();
-    final pHashFuture = calculatePerceptualHash(lowResGray);
+    
+    // All calculations are synchronous and fast enough on the small image.
+    final pHash = await calculatePerceptualHash(lowResGray);
     final blurScore = _calculateLaplacianVariance(lowResGray);
     final lumAndEntropy = _calculateLuminanceAndEntropy(lowResGray);
     final edgeScore = _calculateEdgeDensity(lowResGray);
-    final aestheticScoreFuture = _getAestheticScore(originalImage);
 
-    final results = await Future.wait([
-      pHashFuture,
-      aestheticScoreFuture,
-    ]);
     return PhotoAnalysisResult(
       md5Hash: md5Hash,
-      pHash: results[0] as String,
+      pHash: pHash,
       blurScore: blurScore,
       luminanceScore: lumAndEntropy['luminance']!,
       entropyScore: lumAndEntropy['entropy']!,
       edgeDensityScore: edgeScore,
       isFromScreenshotAlbum: isFromScreenshotAlbum,
-      aestheticScore: results[1] as double,
     );
   }
 }

@@ -19,8 +19,20 @@ class StorageCircularIndicator extends StatelessWidget {
   }
 
   Color _getColor(double percentage) {
-    // Returns a color that transitions from green to red as percentage increases.
-    return Color.lerp(Colors.green, Colors.red, percentage)!;
+    const double greenEnd = 0.5;  // Stays green up to this point
+    const double yellowEnd = 0.8; // Starts turning red after this point
+
+    if (percentage <= greenEnd) {
+      return Colors.green.shade400;
+    } else if (percentage <= yellowEnd) {
+      // Interpolate from green to yellow
+      final double t = (percentage - greenEnd) / (yellowEnd - greenEnd);
+      return Color.lerp(Colors.green.shade400, Colors.yellow.shade600, t)!;
+    } else {
+      // Interpolate from yellow to red
+      final double t = (percentage - yellowEnd) / (1.0 - yellowEnd);
+      return Color.lerp(Colors.yellow.shade600, Colors.red.shade500, t)!;
+    }
   }
 
   @override

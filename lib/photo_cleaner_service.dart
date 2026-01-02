@@ -5,7 +5,6 @@ import 'package:flutter/foundation.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:disk_space_plus/disk_space_plus.dart';
 import 'package:flutter/services.dart';
-import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 
 import 'photo_analyzer.dart';
 
@@ -24,10 +23,7 @@ class IsolateData {
   final String assetId;
   final bool isFromScreenshotAlbum;
 
-  // Add a field for the file path for face detection
-  final String filePath;
-
-  IsolateData(this.token, this.assetId, this.isFromScreenshotAlbum, this.filePath);
+  IsolateData(this.token, this.assetId, this.isFromScreenshotAlbum);
 }
 
 class DeleteIsolateData {
@@ -39,27 +35,6 @@ class DeleteIsolateData {
 Future<dynamic> analyzePhotoInIsolate(IsolateData isolateData) async {
   try {
     BackgroundIsolateBinaryMessenger.ensureInitialized(isolateData.token);
-
-    // Face detection is now the first step inside the isolate.
-    final faceDetector = FaceDetector(
-      options: FaceDetectorOptions(
-        performanceMode: FaceDetectorMode.fast,
-        enableContours: false,
-        enableLandmarks: false,
-        enableClassification: false,
-        minFaceSize: 0.1,
-      ),
-    );
-
-    final inputImage = InputImage.fromFilePath(isolateData.filePath);
-    final List<Face> faces = await faceDetector.processImage(inputImage);
-    final bool hasFace = faces.isNotEmpty;
-    
-    await faceDetector.close();
-
-    if (hasFace) {
-      return null; // Skip this photo entirely if it has a face
-    }
 
     final asset = await AssetEntity.fromId(isolateData.assetId);
     if (asset == null) return null;
@@ -118,7 +93,7 @@ class PhotoCleanerService {
   }
 
   void dispose() {
-    // The face detector is now managed within the isolate, so no top-level dispose needed.
+    // Nothing to dispose
   }
 
   Future<void> scanPhotosInBackground({
@@ -164,13 +139,10 @@ class PhotoCleanerService {
 
     final List<Future<dynamic>> analysisFutures = [];
     for (final asset in assetsToProcess) {
-        final file = await asset.file; // We need the file path for the isolate
-        if (file != null) {
-            final bool isScreenshot = screenshotAssetIds.contains(asset.id);
-            analysisFutures.add(
-                compute(analyzePhotoInIsolate, IsolateData(rootIsolateToken, asset.id, isScreenshot, file.path)),
-            );
-        }
+        final bool isScreenshot = screenshotAssetIds.contains(asset.id);
+        analysisFutures.add(
+            compute(analyzePhotoInIsolate, IsolateData(rootIsolateToken, asset.id, isScreenshot)),
+        );
     }
 
     final List<IsolateAnalysisResult> analysisResults = [];
@@ -218,12 +190,17 @@ class PhotoCleanerService {
   }
 
   Future<StorageInfo> getStorageInfo() async {
-    final double total = await _diskSpace.getTotalDiskSpace ?? 0.0;
-    final double free = await _diskSpace.getFreeDiskSpace ?? 0.0;
-    return StorageInfo(
-      totalSpace: (total * 1024 * 1024).toInt(),
-      usedSpace: ((total - free) * 1024 * 1024).toInt(),
-    );
+    try {
+      final double total = await _diskSpace.getTotalDiskSpace ?? 0.0;
+      final double free = await _diskSpace.getFreeDiskSpace ?? 0.0;
+      return StorageInfo(
+        totalSpace: (total * 1048576).toInt(), // MB to Bytes
+        usedSpace: ((total - free) * 1048576).toInt(), // MB to Bytes
+      );
+    } catch (e) {
+      developer.log('Failed to get disk space', name: 'photo_cleaner.error', error: e);
+      return StorageInfo(totalSpace: 0, usedSpace: 0);
+    }
   }
 }
 
