@@ -59,7 +59,7 @@ class PermissionScreen extends StatelessWidget {
                 ElevatedButton(
                   onPressed: content['action'],
                   style: theme.elevatedButtonTheme.style?.copyWith(
-                    padding: MaterialStateProperty.all(
+                    padding: WidgetStateProperty.all(
                         const EdgeInsets.symmetric(vertical: 20)),
                   ),
                   child: Text(content['buttonText']),

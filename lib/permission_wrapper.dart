@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:clean/permission_screen.dart';
 import 'package:clean/main.dart'; // To get HomeScreen
 import 'package:clean/permission_handler_service.dart';
-import 'package:flutter/foundation.dart';
 
 class PermissionWrapper extends StatefulWidget {
   final void Function(Locale) onLocaleChanged;
