@@ -27,11 +27,11 @@ class PermissionScreen extends StatelessWidget {
       body: NoiseBox(
         child: SafeArea(
           child: Padding(
-            padding: const EdgeInsets.all(24.0),
+            padding: const EdgeInsets.symmetric(horizontal: 24.0),
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
+                _buildLanguageSelector(context),
                 const Spacer(flex: 2),
                 PulsingIcon(
                   icon: content['icon'],
@@ -64,8 +64,6 @@ class PermissionScreen extends StatelessWidget {
                   ),
                   child: Text(content['buttonText']),
                 ),
-                const SizedBox(height: 40),
-                _buildLanguageSelector(context),
                 const SizedBox(height: 20),
               ],
             ),
@@ -76,16 +74,18 @@ class PermissionScreen extends StatelessWidget {
   }
 
   Widget _buildLanguageSelector(BuildContext context) {
-    // Extracted for clarity
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        _buildFlagButton(context, '🇬🇧', const Locale('en')),
-        _buildFlagButton(context, '🇫🇷', const Locale('fr')),
-        _buildFlagButton(context, '🇪🇸', const Locale('es')),
-        _buildFlagButton(context, '🇨🇳', const Locale('zh')),
-        _buildFlagButton(context, '🇺🇦', const Locale('uk')),
-      ],
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 20.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          _buildFlagButton(context, '🇬🇧', const Locale('en')),
+          _buildFlagButton(context, '🇫🇷', const Locale('fr')),
+          _buildFlagButton(context, '🇪🇸', const Locale('es')),
+          _buildFlagButton(context, '🇨🇳', const Locale('zh')),
+          _buildFlagButton(context, '🇺🇦', const Locale('uk')),
+        ],
+      ),
     );
   }
 
