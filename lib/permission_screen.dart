@@ -64,10 +64,46 @@ class PermissionScreen extends StatelessWidget {
                   ),
                   child: Text(content['buttonText']),
                 ),
+                const SizedBox(height: 40),
+                _buildLanguageSelector(context),
                 const SizedBox(height: 20),
               ],
             ),
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLanguageSelector(BuildContext context) {
+    // Extracted for clarity
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        _buildFlagButton(context, '🇬🇧', const Locale('en')),
+        _buildFlagButton(context, '🇫🇷', const Locale('fr')),
+        _buildFlagButton(context, '🇪🇸', const Locale('es')),
+        _buildFlagButton(context, '🇨🇳', const Locale('zh')),
+        _buildFlagButton(context, '🇺🇦', const Locale('uk')),
+      ],
+    );
+  }
+
+  Widget _buildFlagButton(BuildContext context, String flag, Locale locale) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+      child: TextButton(
+        onPressed: () => onLocaleChanged(locale),
+        style: TextButton.styleFrom(
+          shape: const CircleBorder(),
+          padding: const EdgeInsets.all(12),
+          backgroundColor: AppLocalizations.of(context).localeName == locale.languageCode
+              ? Theme.of(context).colorScheme.primary.withOpacity(0.1)
+              : Colors.transparent,
+        ),
+        child: Text(
+          flag,
+          style: const TextStyle(fontSize: 28),
         ),
       ),
     );
