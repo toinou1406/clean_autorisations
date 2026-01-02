@@ -9,17 +9,16 @@ class AppLocalizationsEs extends AppLocalizations {
   AppLocalizationsEs([String locale = 'es']) : super(locale);
 
   @override
-  String get privacyFirst => 'La privacidad primero';
-
-  @override
-  String get permissionScreenBody =>
-      'Clean analiza tus fotos directamente en tu dispositivo. Nada se sube a un servidor.';
-
-  @override
-  String get grantAccessContinue => 'Conceder acceso y continuar';
+  String get appTitle => 'Clean';
 
   @override
   String get homeScreenTitle => 'Clean';
+
+  @override
+  String get settings => 'Ajustes';
+
+  @override
+  String get totalSpaceSaved => 'Espacio total ahorrado';
 
   @override
   String get sortingMessageAnalyzing => 'Analizando metadatos de fotos...';
@@ -47,29 +46,50 @@ class AppLocalizationsEs extends AppLocalizations {
   String get sortingMessageFinalizing => 'Finalizando la selección de fotos...';
 
   @override
-  String get noMorePhotos =>
-      '¡No se encontraron más fotos que se puedan eliminar!';
-
-  @override
-  String errorOccurred(String error) {
+  String errorOccurred(Object error) {
     return 'Ocurrió un error: $error';
   }
 
   @override
-  String photosDeleted(int count, String space) {
+  String get noMorePhotos =>
+      '¡No se encontraron más fotos que se puedan eliminar!';
+
+  @override
+  String get couldNotDelete =>
+      'No se pudieron eliminar las fotos. Por favor, inténtalo de nuevo.';
+
+  @override
+  String photosDeleted(num count, Object space) {
     return '$count fotos eliminadas y $space ahorrados';
   }
 
   @override
-  String errorDeleting(String error) {
+  String errorDeleting(Object error) {
     return 'Error al eliminar fotos: $error';
   }
+
+  @override
+  String get gridTutorialText =>
+      'Toca para ver en pantalla completa. Mantén presionado o toca dos veces para conservar.';
+
+  @override
+  String get gridTutorialDismiss => 'Toca en cualquier lugar para continuar';
+
+  @override
+  String get keep => 'Guardar';
+
+  @override
+  String get letsFindPhotos =>
+      'Busquemos algunas fotos que puedas eliminar de forma segura.';
+
+  @override
+  String get storageSpaceSaved => 'Ahorrado';
 
   @override
   String get reSort => 'Reordenar';
 
   @override
-  String delete(int count) {
+  String delete(Object count) {
     return 'Eliminar ($count)';
   }
 
@@ -80,41 +100,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get analyzePhotos => 'Analizar fotos';
 
   @override
-  String fullScreenTitle(int count, int total) {
-    return '$count de $total';
-  }
-
-  @override
-  String get kept => 'Guardada';
-
-  @override
-  String get keep => 'Guardar';
-
-  @override
-  String get failedToLoadImage => 'Error al cargar la imagen';
-
-  @override
-  String get couldNotDelete =>
-      'No se pudieron eliminar las fotos. Por favor, inténtalo de nuevo.';
-
-  @override
-  String get photoAccessRequired =>
-      'Se requiere permiso de acceso completo a las fotos.';
-
-  @override
-  String get settings => 'Ajustes';
-
-  @override
-  String get storageUsed => 'Almacenamiento usado';
-
-  @override
-  String get spaceSavedThisMonth => 'Espacio ahorrado (este mes)';
-
-  @override
-  String get appTitle => 'Clean';
-
-  @override
   String get chooseYourLanguage => 'Elige tu idioma';
+
+  @override
+  String get grantPermission => 'Conceder permiso';
 
   @override
   String get permissionTitle => 'Acceso a fotos requerido';
@@ -124,50 +113,34 @@ class AppLocalizationsEs extends AppLocalizations {
       'Clean necesita acceso a tus fotos para ayudarte a limpiarlas.';
 
   @override
-  String get grantPermission => 'Conceder permiso';
-
-  @override
-  String get permissionRequired => 'Permiso requerido';
-
-  @override
-  String get permissionPermanentlyDenied =>
-      'El acceso a las fotos ha sido denegado permanentemente. Para continuar, debe habilitarlo en la configuración de su dispositivo.';
-
-  @override
   String get permissionWarning =>
       'Se requiere acceso completo a las fotos para encontrar y eliminar fotos no deseadas. Por favor, concede acceso en la configuración de tu teléfono.';
-
-  @override
-  String get permissionLimitedWarning =>
-      'Esta aplicación necesita acceso completo a tus fotos para funcionar correctamente. Por favor, concede acceso completo in la configuración de tu teléfono.';
-
-  @override
-  String get permissionDeniedWarning =>
-      'El acceso a las fotos fue denegado. Esta aplicación necesita acceso a tus fotos para funcionar. Por favor, concede acceso en la configuración de tu teléfono.';
-
-  @override
-  String get cancel => 'Cancelar';
 
   @override
   String get openSettings => 'Abrir la configuración';
 
   @override
-  String get totalSpaceSaved => 'Espacio total ahorrado';
+  String get permissionLimitedTitle => 'Full Access Required';
 
   @override
-  String get readyToClean => '¿Listo para limpiar?';
+  String get permissionLimitedDescription =>
+      'You have granted limited access. For the app to find all photos worth deleting, please allow access to your entire library in the settings.';
 
   @override
-  String get letsFindPhotos =>
-      'Busquemos algunas fotos que puedas eliminar de forma segura.';
+  String get permissionPermanentlyDeniedTitle => 'Permission Denied';
 
   @override
-  String get storageSpaceSaved => 'Ahorrado';
+  String get permissionPermanentlyDeniedDescription =>
+      'You have permanently denied photo access. To use this feature, you must enable it in your device settings.';
 
   @override
-  String get gridTutorialText =>
-      'Toca para ver en pantalla completa. Mantén presionado o toca dos veces para conservar.';
+  String get storageUsed => 'Almacenamiento usado';
 
   @override
-  String get gridTutorialDismiss => 'Toca en cualquier lugar para continuar';
+  String fullScreenTitle(Object count, Object total) {
+    return '$count de $total';
+  }
+
+  @override
+  String get kept => 'Guardada';
 }

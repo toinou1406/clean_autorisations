@@ -104,52 +104,52 @@ abstract class AppLocalizations {
     Locale('zh')
   ];
 
-  /// Title on the permission screen
+  /// No description provided for @appTitle.
   ///
   /// In en, this message translates to:
-  /// **'Privacy First'**
-  String get privacyFirst;
-
-  /// Body text on the permission screen
-  ///
-  /// In en, this message translates to:
-  /// **'Clean analyzes your photos directly on your device. Nothing is ever uploaded to a server.'**
-  String get permissionScreenBody;
-
-  /// Button text on the permission screen
-  ///
-  /// In en, this message translates to:
-  /// **'Grant Access & Continue'**
-  String get grantAccessContinue;
+  /// **'Photo Cleaner'**
+  String get appTitle;
 
   /// No description provided for @homeScreenTitle.
   ///
   /// In en, this message translates to:
-  /// **'Clean'**
+  /// **'Dashboard'**
   String get homeScreenTitle;
+
+  /// No description provided for @settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings'**
+  String get settings;
+
+  /// No description provided for @totalSpaceSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Total Space Saved'**
+  String get totalSpaceSaved;
 
   /// No description provided for @sortingMessageAnalyzing.
   ///
   /// In en, this message translates to:
-  /// **'Analyzing photo metadata...'**
+  /// **'Analyzing photo characteristics...'**
   String get sortingMessageAnalyzing;
 
   /// No description provided for @sortingMessageBlurry.
   ///
   /// In en, this message translates to:
-  /// **'Detecting blurry images...'**
+  /// **'Identifying blurry photos...'**
   String get sortingMessageBlurry;
 
   /// No description provided for @sortingMessageScreenshots.
   ///
   /// In en, this message translates to:
-  /// **'Searching for bad screenshots...'**
+  /// **'Looking for screenshots...'**
   String get sortingMessageScreenshots;
 
   /// No description provided for @sortingMessageDuplicates.
   ///
   /// In en, this message translates to:
-  /// **'Checking for duplicates...'**
+  /// **'Searching for duplicates...'**
   String get sortingMessageDuplicates;
 
   /// No description provided for @sortingMessageScores.
@@ -167,38 +167,74 @@ abstract class AppLocalizations {
   /// No description provided for @sortingMessageRanking.
   ///
   /// In en, this message translates to:
-  /// **'Ranking photos by \'badness\'...'**
+  /// **'Ranking suggestions...'**
   String get sortingMessageRanking;
 
   /// No description provided for @sortingMessageFinalizing.
   ///
   /// In en, this message translates to:
-  /// **'Finalizing the photo selection...'**
+  /// **'Finalizing batch...'**
   String get sortingMessageFinalizing;
-
-  /// No description provided for @noMorePhotos.
-  ///
-  /// In en, this message translates to:
-  /// **'No more deletable photos found!'**
-  String get noMorePhotos;
 
   /// No description provided for @errorOccurred.
   ///
   /// In en, this message translates to:
   /// **'An error occurred: {error}'**
-  String errorOccurred(String error);
+  String errorOccurred(Object error);
+
+  /// No description provided for @noMorePhotos.
+  ///
+  /// In en, this message translates to:
+  /// **'No more photos to sort for now!'**
+  String get noMorePhotos;
+
+  /// No description provided for @couldNotDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not delete photos. You may need to grant permission again.'**
+  String get couldNotDelete;
 
   /// No description provided for @photosDeleted.
   ///
   /// In en, this message translates to:
-  /// **'Deleted {count} photos and saved {space}'**
-  String photosDeleted(int count, String space);
+  /// **'{count,plural, =1{1 photo deleted} other{{count} photos deleted}} ({space} saved)'**
+  String photosDeleted(num count, Object space);
 
   /// No description provided for @errorDeleting.
   ///
   /// In en, this message translates to:
   /// **'Error deleting photos: {error}'**
-  String errorDeleting(String error);
+  String errorDeleting(Object error);
+
+  /// No description provided for @gridTutorialText.
+  ///
+  /// In en, this message translates to:
+  /// **'Double tap or long press on a photo to mark it to be kept.'**
+  String get gridTutorialText;
+
+  /// No description provided for @gridTutorialDismiss.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap anywhere to dismiss'**
+  String get gridTutorialDismiss;
+
+  /// No description provided for @keep.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep'**
+  String get keep;
+
+  /// No description provided for @letsFindPhotos.
+  ///
+  /// In en, this message translates to:
+  /// **'Let\'s find some photos to clean!'**
+  String get letsFindPhotos;
+
+  /// No description provided for @storageSpaceSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Storage Space Saved'**
+  String get storageSpaceSaved;
 
   /// No description provided for @reSort.
   ///
@@ -209,8 +245,8 @@ abstract class AppLocalizations {
   /// No description provided for @delete.
   ///
   /// In en, this message translates to:
-  /// **'Delete ({count})'**
-  String delete(int count);
+  /// **'Delete {count}'**
+  String delete(Object count);
 
   /// No description provided for @pass.
   ///
@@ -224,83 +260,11 @@ abstract class AppLocalizations {
   /// **'Analyze Photos'**
   String get analyzePhotos;
 
-  /// No description provided for @fullScreenTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'{count} of {total}'**
-  String fullScreenTitle(int count, int total);
-
-  /// No description provided for @kept.
-  ///
-  /// In en, this message translates to:
-  /// **'Kept'**
-  String get kept;
-
-  /// No description provided for @keep.
-  ///
-  /// In en, this message translates to:
-  /// **'Keep'**
-  String get keep;
-
-  /// No description provided for @failedToLoadImage.
-  ///
-  /// In en, this message translates to:
-  /// **'Failed to load image'**
-  String get failedToLoadImage;
-
-  /// No description provided for @couldNotDelete.
-  ///
-  /// In en, this message translates to:
-  /// **'Could not delete photos. Please try again.'**
-  String get couldNotDelete;
-
-  /// No description provided for @photoAccessRequired.
-  ///
-  /// In en, this message translates to:
-  /// **'Full photo access permission is required.'**
-  String get photoAccessRequired;
-
-  /// No description provided for @settings.
-  ///
-  /// In en, this message translates to:
-  /// **'Settings'**
-  String get settings;
-
-  /// No description provided for @storageUsed.
-  ///
-  /// In en, this message translates to:
-  /// **'Storage Used'**
-  String get storageUsed;
-
-  /// No description provided for @spaceSavedThisMonth.
-  ///
-  /// In en, this message translates to:
-  /// **'Space Saved (This Month)'**
-  String get spaceSavedThisMonth;
-
-  /// No description provided for @appTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Clean'**
-  String get appTitle;
-
   /// No description provided for @chooseYourLanguage.
   ///
   /// In en, this message translates to:
   /// **'Choose your language'**
   String get chooseYourLanguage;
-
-  /// No description provided for @permissionTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Photo Access Required'**
-  String get permissionTitle;
-
-  /// No description provided for @permissionDescription.
-  ///
-  /// In en, this message translates to:
-  /// **'Clean needs full access to your photos to work properly. Please choose \'Allow access to all photos\' when prompted.'**
-  String get permissionDescription;
 
   /// No description provided for @grantPermission.
   ///
@@ -308,41 +272,23 @@ abstract class AppLocalizations {
   /// **'Grant Permission'**
   String get grantPermission;
 
-  /// No description provided for @permissionRequired.
+  /// No description provided for @permissionTitle.
   ///
   /// In en, this message translates to:
-  /// **'Permission Required'**
-  String get permissionRequired;
+  /// **'Access Required'**
+  String get permissionTitle;
 
-  /// No description provided for @permissionPermanentlyDenied.
+  /// No description provided for @permissionDescription.
   ///
   /// In en, this message translates to:
-  /// **'Photo access has been permanently denied. To continue, you must enable it in your device settings.'**
-  String get permissionPermanentlyDenied;
+  /// **'To help you clean up your gallery, this app needs permission to access your photos.'**
+  String get permissionDescription;
 
   /// No description provided for @permissionWarning.
   ///
   /// In en, this message translates to:
-  /// **'Full photo access is required to find and delete unwanted photos. Please grant access in your phone\'s settings.'**
+  /// **'Full access is required to analyze all photos. Please grant full access in the next prompt.'**
   String get permissionWarning;
-
-  /// No description provided for @permissionLimitedWarning.
-  ///
-  /// In en, this message translates to:
-  /// **'This app needs full access to your photos to function properly. Please grant full access in your phone\'s settings.'**
-  String get permissionLimitedWarning;
-
-  /// No description provided for @permissionDeniedWarning.
-  ///
-  /// In en, this message translates to:
-  /// **'Photo access was denied. This app needs access to your photos to work. Please grant access in your phone\'s settings.'**
-  String get permissionDeniedWarning;
-
-  /// No description provided for @cancel.
-  ///
-  /// In en, this message translates to:
-  /// **'Cancel'**
-  String get cancel;
 
   /// No description provided for @openSettings.
   ///
@@ -350,41 +296,47 @@ abstract class AppLocalizations {
   /// **'Open Settings'**
   String get openSettings;
 
-  /// No description provided for @totalSpaceSaved.
+  /// No description provided for @permissionLimitedTitle.
   ///
   /// In en, this message translates to:
-  /// **'Total Space Saved'**
-  String get totalSpaceSaved;
+  /// **'Full Access Required'**
+  String get permissionLimitedTitle;
 
-  /// No description provided for @readyToClean.
+  /// No description provided for @permissionLimitedDescription.
   ///
   /// In en, this message translates to:
-  /// **'Ready to Clean?'**
-  String get readyToClean;
+  /// **'You have granted limited access. For the app to find all photos worth deleting, please allow access to your entire library in the settings.'**
+  String get permissionLimitedDescription;
 
-  /// No description provided for @letsFindPhotos.
+  /// No description provided for @permissionPermanentlyDeniedTitle.
   ///
   /// In en, this message translates to:
-  /// **'Let\'s find some photos you can safely delete.'**
-  String get letsFindPhotos;
+  /// **'Permission Denied'**
+  String get permissionPermanentlyDeniedTitle;
 
-  /// No description provided for @storageSpaceSaved.
+  /// No description provided for @permissionPermanentlyDeniedDescription.
   ///
   /// In en, this message translates to:
-  /// **'Saved'**
-  String get storageSpaceSaved;
+  /// **'You have permanently denied photo access. To use this feature, you must enable it in your device settings.'**
+  String get permissionPermanentlyDeniedDescription;
 
-  /// Tutorial text shown on the photo grid
+  /// No description provided for @storageUsed.
   ///
   /// In en, this message translates to:
-  /// **'Tap to see a photo fullscreen.\n\nLong-press or double-tap to keep it.'**
-  String get gridTutorialText;
+  /// **'Storage Used'**
+  String get storageUsed;
 
-  /// Dismiss message for the tutorial overlay
+  /// No description provided for @fullScreenTitle.
   ///
   /// In en, this message translates to:
-  /// **'Tap anywhere to continue'**
-  String get gridTutorialDismiss;
+  /// **'{count} of {total}'**
+  String fullScreenTitle(Object count, Object total);
+
+  /// No description provided for @kept.
+  ///
+  /// In en, this message translates to:
+  /// **'Kept'**
+  String get kept;
 }
 
 class _AppLocalizationsDelegate

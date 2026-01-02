@@ -51,7 +51,7 @@ class PermissionScreen extends StatelessWidget {
                   content['description'],
                   textAlign: TextAlign.center,
                   style: theme.textTheme.bodyLarge?.copyWith(
-                    color: theme.textTheme.bodyLarge?.color?.withOpacity(0.8),
+                    color: theme.textTheme.bodyLarge?.color?.withAlpha(204),
                     height: 1.6,
                   ),
                 ),

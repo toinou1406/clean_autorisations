@@ -35,5 +35,8 @@
     "permissionLimitedTitle": "Full Access Required",
     "permissionLimitedDescription": "You have granted limited access. For the app to find all photos worth deleting, please allow access to your entire library in the settings.",
     "permissionPermanentlyDeniedTitle": "Permission Denied",
-    "permissionPermanentlyDeniedDescription": "You have permanently denied photo access. To use this feature, you must enable it in your device settings."
+    "permissionPermanentlyDeniedDescription": "You have permanently denied photo access. To use this feature, you must enable it in your device settings.",
+    "storageUsed": "Storage Used",
+    "fullScreenTitle": "{count} of {total}",
+    "kept": "Kept"
 }

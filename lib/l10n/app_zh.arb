@@ -22,7 +22,7 @@
     "@delete": {
         "placeholders": {
             "count": {
-                "type": "int"
+                "type": "Object"
             }
         }
     },
@@ -32,10 +32,10 @@
     "@photosDeleted": {
         "placeholders": {
             "count": {
-                "type": "int"
+                "type": "num"
             },
             "space": {
-                "type": "String"
+                "type": "Object"
             }
         }
     },
@@ -73,10 +73,10 @@
     "@fullScreenTitle": {
         "placeholders": {
             "count": {
-                "type": "int"
+                "type": "Object"
             },
             "total": {
-                "type": "int"
+                "type": "Object"
             }
         }
     },
@@ -88,5 +88,9 @@
     "letsFindPhotos": "让我们查找一些可以安全删除的照片。",
     "storageSpaceSaved": "已节省",
   "gridTutorialText": "点击可全屏查看照片。长按或双击可保留照片。",
-  "gridTutorialDismiss": "在任何地方点一下即可继续"
+  "gridTutorialDismiss": "在任何地方点一下即可继续",
+  "permissionLimitedTitle": "需要完全访问权限",
+  "permissionLimitedDescription": "您已授予有限的访问权限。为了让应用找到所有值得删除的照片，请在设置中允许访问您的整个图库。",
+  "permissionPermanentlyDeniedTitle": "权限被拒绝",
+  "permissionPermanentlyDeniedDescription": "您已永久拒绝照片访问。要使用此功能，您必须在设备设置中启用它。"
 }

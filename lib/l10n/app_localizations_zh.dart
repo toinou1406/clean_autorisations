@@ -9,16 +9,16 @@ class AppLocalizationsZh extends AppLocalizations {
   AppLocalizationsZh([String locale = 'zh']) : super(locale);
 
   @override
-  String get privacyFirst => '隐私第一';
-
-  @override
-  String get permissionScreenBody => 'Clean 直接在您的设备上分析您的照片。任何内容都不会上传到服务器。';
-
-  @override
-  String get grantAccessContinue => '授予访问权限并继续';
+  String get appTitle => 'Clean';
 
   @override
   String get homeScreenTitle => '主页';
+
+  @override
+  String get settings => '设置';
+
+  @override
+  String get totalSpaceSaved => '总共节省的空间';
 
   @override
   String get sortingMessageAnalyzing => '正在分析照片...';
@@ -45,28 +45,46 @@ class AppLocalizationsZh extends AppLocalizations {
   String get sortingMessageFinalizing => '正在完成...';
 
   @override
-  String get noMorePhotos => '没有更多可整理的照片了！';
-
-  @override
-  String errorOccurred(String error) {
+  String errorOccurred(Object error) {
     return '发生错误：$error';
   }
 
   @override
-  String photosDeleted(int count, String space) {
+  String get noMorePhotos => '没有更多可整理的照片了！';
+
+  @override
+  String get couldNotDelete => '无法删除照片。请稍后再试。';
+
+  @override
+  String photosDeleted(num count, Object space) {
     return '$count 张照片已删除，节省了 $space！';
   }
 
   @override
-  String errorDeleting(String error) {
+  String errorDeleting(Object error) {
     return '删除时出错：$error';
   }
+
+  @override
+  String get gridTutorialText => '点击可全屏查看照片。长按或双击可保留照片。';
+
+  @override
+  String get gridTutorialDismiss => '在任何地方点一下即可继续';
+
+  @override
+  String get keep => '保留';
+
+  @override
+  String get letsFindPhotos => '让我们查找一些可以安全删除的照片。';
+
+  @override
+  String get storageSpaceSaved => '已节省';
 
   @override
   String get reSort => '重新排序';
 
   @override
-  String delete(int count) {
+  String delete(Object count) {
     return '删除 $count';
   }
 
@@ -77,39 +95,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get analyzePhotos => '分析照片';
 
   @override
-  String fullScreenTitle(int count, int total) {
-    return '$count / $total';
-  }
-
-  @override
-  String get kept => '已保留';
-
-  @override
-  String get keep => '保留';
-
-  @override
-  String get failedToLoadImage => '加载图片失败';
-
-  @override
-  String get couldNotDelete => '无法删除照片。请稍后再试。';
-
-  @override
-  String get photoAccessRequired => '需要照片访问权限才能继续。';
-
-  @override
-  String get settings => '设置';
-
-  @override
-  String get storageUsed => '已用存储空间';
-
-  @override
-  String get spaceSavedThisMonth => '本月节省的空间';
-
-  @override
-  String get appTitle => 'Clean';
-
-  @override
   String get chooseYourLanguage => '选择您的语言';
+
+  @override
+  String get grantPermission => '授予权限';
 
   @override
   String get permissionTitle => '需要照片访问权限';
@@ -118,46 +107,33 @@ class AppLocalizationsZh extends AppLocalizations {
   String get permissionDescription => '为了扫描和管理您的照片，此应用程序需要访问您设备存储的权限。';
 
   @override
-  String get grantPermission => '授予权限';
-
-  @override
-  String get permissionRequired => '需要权限';
-
-  @override
-  String get permissionPermanentlyDenied => '照片访问权限已被永久拒绝。要继续，您必须在设备设置中启用它。';
-
-  @override
   String get permissionWarning => '需要完全的照片访问权限才能查找和删除不需要的照片。请在手机设置中授予访问权限。';
-
-  @override
-  String get permissionLimitedWarning =>
-      '此应用程序需要完全访问您的照片才能正常运行。请在手机设置中授予完全访问权限。';
-
-  @override
-  String get permissionDeniedWarning =>
-      '照片访问被拒绝。此应用程序需要访问您的照片才能工作。请在手机设置中授予访问权限。';
-
-  @override
-  String get cancel => '取消';
 
   @override
   String get openSettings => '打开设置';
 
   @override
-  String get totalSpaceSaved => '总共节省的空间';
+  String get permissionLimitedTitle => '需要完全访问权限';
 
   @override
-  String get readyToClean => '准备好清理了吗？';
+  String get permissionLimitedDescription =>
+      '您已授予有限的访问权限。为了让应用找到所有值得删除的照片，请在设置中允许访问您的整个图库。';
 
   @override
-  String get letsFindPhotos => '让我们查找一些可以安全删除的照片。';
+  String get permissionPermanentlyDeniedTitle => '权限被拒绝';
 
   @override
-  String get storageSpaceSaved => '已节省';
+  String get permissionPermanentlyDeniedDescription =>
+      '您已永久拒绝照片访问。要使用此功能，您必须在设备设置中启用它。';
 
   @override
-  String get gridTutorialText => '点击可全屏查看照片。长按或双击可保留照片。';
+  String get storageUsed => '已用存储空间';
 
   @override
-  String get gridTutorialDismiss => '在任何地方点一下即可继续';
+  String fullScreenTitle(Object count, Object total) {
+    return '$count / $total';
+  }
+
+  @override
+  String get kept => '已保留';
 }
