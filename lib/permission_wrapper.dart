@@ -1,8 +1,10 @@
+
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:photo_manager/photo_manager.dart';
 import 'package:clean/permission_screen.dart';
 import 'package:clean/main.dart'; // To get HomeScreen
+import 'package:clean/permission_handler_service.dart';
+import 'package:flutter/foundation.dart';
 
 class PermissionWrapper extends StatefulWidget {
   final void Function(Locale) onLocaleChanged;
@@ -13,46 +15,61 @@ class PermissionWrapper extends StatefulWidget {
   PermissionWrapperState createState() => PermissionWrapperState();
 }
 
-class PermissionWrapperState extends State<PermissionWrapper> {
-  Future<PermissionState> _permissionStateFuture;
+class PermissionWrapperState extends State<PermissionWrapper> with WidgetsBindingObserver {
+  final PermissionHandlerService _permissionService = PermissionHandlerService();
+  late final StreamSubscription<AppPermissionStatus> _subscription;
 
-  PermissionWrapperState()
-      : _permissionStateFuture = PhotoManager.getPermissionState(
-          requestOption: const PermissionRequestOption(),
-        );
+  AppPermissionStatus? _status;
 
-  void refresh() {
-    setState(() {
-      _permissionStateFuture = Future.delayed(const Duration(milliseconds: 500), () {
-        return PhotoManager.getPermissionState(
-          requestOption: const PermissionRequestOption(),
-        );
-      });
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _subscription = _permissionService.onStatusChanged.listen((status) {
+      if (mounted) {
+        setState(() {
+          _status = status;
+        });
+      }
     });
   }
 
   @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      debugPrint("App resumed, refreshing permission status.");
+      _permissionService.refreshStatus();
+    }
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _subscription.cancel();
+    _permissionService.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return FutureBuilder<PermissionState>(
-      future: _permissionStateFuture,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Scaffold(
-            body: Center(
-              child: CircularProgressIndicator(),
-            ),
-          );
-        }
-
-        if (snapshot.hasData && snapshot.data == PermissionState.authorized) {
-          return HomeScreen(onLocaleChanged: widget.onLocaleChanged);
-        }
-
+    switch (_status) {
+      case AppPermissionStatus.authorized:
+        return HomeScreen(onLocaleChanged: widget.onLocaleChanged);
+      case AppPermissionStatus.limited:
+      case AppPermissionStatus.denied:
+      case AppPermissionStatus.permanentlyDenied:
         return PermissionScreen(
-          onPermissionGranted: refresh,
+          initialStatus: _status!,
+          permissionService: _permissionService,
           onLocaleChanged: widget.onLocaleChanged,
         );
-      },
-    );
+      case AppPermissionStatus.unknown:
+      case null:
+        return const Scaffold(
+          body: Center(
+            child: CircularProgressIndicator(),
+          ),
+        );
+    }
   }
 }

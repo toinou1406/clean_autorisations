@@ -1,107 +1,39 @@
 
 {
-    "@@locale": "en",
-    "privacyFirst": "Privacy First",
-    "@privacyFirst": {
-        "description": "Title on the permission screen"
-    },
-    "permissionScreenBody": "Clean analyzes your photos directly on your device. Nothing is ever uploaded to a server.",
-    "@permissionScreenBody": {
-        "description": "Body text on the permission screen"
-    },
-    "grantAccessContinue": "Grant Access & Continue",
-    "@grantAccessContinue": {
-        "description": "Button text on the permission screen"
-    },
-    "homeScreenTitle": "Clean",
-    "sortingMessageAnalyzing": "Analyzing photo metadata...",
-    "sortingMessageBlurry": "Detecting blurry images...",
-    "sortingMessageScreenshots": "Searching for bad screenshots...",
-    "sortingMessageDuplicates": "Checking for duplicates...",
+    "appTitle": "Photo Cleaner",
+    "homeScreenTitle": "Dashboard",
+    "settings": "Settings",
+    "totalSpaceSaved": "Total Space Saved",
+    "sortingMessageAnalyzing": "Analyzing photo characteristics...",
+    "sortingMessageBlurry": "Identifying blurry photos...",
+    "sortingMessageScreenshots": "Looking for screenshots...",
+    "sortingMessageDuplicates": "Searching for duplicates...",
     "sortingMessageScores": "Calculating photo scores...",
     "sortingMessageCompiling": "Compiling results...",
-    "sortingMessageRanking": "Ranking photos by 'badness'...",
-    "sortingMessageFinalizing": "Finalizing the photo selection...",
-    "noMorePhotos": "No more deletable photos found!",
+    "sortingMessageRanking": "Ranking suggestions...",
+    "sortingMessageFinalizing": "Finalizing batch...",
     "errorOccurred": "An error occurred: {error}",
-    "@errorOccurred": {
-        "placeholders": {
-            "error": {
-                "type": "String"
-            }
-        }
-    },
-    "photosDeleted": "Deleted {count} photos and saved {space}",
-    "@photosDeleted": {
-      "placeholders": {
-        "count": {
-          "type": "int"
-        },
-        "space": {
-          "type": "String"
-        }
-      }
-    },
+    "noMorePhotos": "No more photos to sort for now!",
+    "couldNotDelete": "Could not delete photos. You may need to grant permission again.",
+    "photosDeleted": "{count,plural, =1{1 photo deleted} other{{count} photos deleted}} ({space} saved)",
     "errorDeleting": "Error deleting photos: {error}",
-    "@errorDeleting": {
-        "placeholders": {
-            "error": {
-                "type": "String"
-            }
-        }
-    },
+    "gridTutorialText": "Double tap or long press on a photo to mark it to be kept.",
+    "gridTutorialDismiss": "Tap anywhere to dismiss",
+    "keep": "Keep",
+    "letsFindPhotos": "Let's find some photos to clean!",
+    "storageSpaceSaved": "Storage Space Saved",
     "reSort": "Re-sort",
-    "delete": "Delete ({count})",
-    "@delete": {
-        "placeholders": {
-            "count": {
-                "type": "int"
-            }
-        }
-    },
+    "delete": "Delete {count}",
     "pass": "Pass",
     "analyzePhotos": "Analyze Photos",
-    "fullScreenTitle": "{count} of {total}",
-    "@fullScreenTitle": {
-        "placeholders": {
-            "count": {
-                "type": "int"
-            },
-            "total": {
-                "type": "int"
-            }
-        }
-    },
-    "kept": "Kept",
-    "keep": "Keep",
-    "failedToLoadImage": "Failed to load image",
-    "couldNotDelete": "Could not delete photos. Please try again.",
-    "photoAccessRequired": "Full photo access permission is required.",
-    "settings": "Settings",
-    "storageUsed": "Storage Used",
-    "spaceSavedThisMonth": "Space Saved (This Month)",
-    "appTitle": "Clean",
     "chooseYourLanguage": "Choose your language",
-    "permissionTitle": "Photo Access Required",
-    "permissionDescription": "Clean needs full access to your photos to work properly. Please choose 'Allow access to all photos' when prompted.",
     "grantPermission": "Grant Permission",
-    "permissionRequired": "Permission Required",
-    "permissionPermanentlyDenied": "Photo access has been permanently denied. To continue, you must enable it in your device settings.",
-    "permissionWarning": "Full photo access is required to find and delete unwanted photos. Please grant access in your phone's settings.",
-    "permissionLimitedWarning": "This app needs full access to your photos to function properly. Please grant full access in your phone's settings.",
-    "permissionDeniedWarning": "Photo access was denied. This app needs access to your photos to work. Please grant access in your phone's settings.",
-    "cancel": "Cancel",
+    "permissionTitle": "Access Required",
+    "permissionDescription": "To help you clean up your gallery, this app needs permission to access your photos.",
+    "permissionWarning": "Full access is required to analyze all photos. Please grant full access in the next prompt.",
     "openSettings": "Open Settings",
-    "totalSpaceSaved": "Total Space Saved",
-    "readyToClean": "Ready to Clean?",
-    "letsFindPhotos": "Let's find some photos you can safely delete.",
-    "storageSpaceSaved": "Saved",
-  "gridTutorialText": "Tap to see a photo fullscreen.\n\nLong-press or double-tap to keep it.",
-  "@gridTutorialText": {
-    "description": "Tutorial text shown on the photo grid"
-  },
-  "gridTutorialDismiss": "Tap anywhere to continue",
-  "@gridTutorialDismiss": {
-    "description": "Dismiss message for the tutorial overlay"
-  }
+    "permissionLimitedTitle": "Full Access Required",
+    "permissionLimitedDescription": "You have granted limited access. For the app to find all photos worth deleting, please allow access to your entire library in the settings.",
+    "permissionPermanentlyDeniedTitle": "Permission Denied",
+    "permissionPermanentlyDeniedDescription": "You have permanently denied photo access. To use this feature, you must enable it in your device settings."
 }
